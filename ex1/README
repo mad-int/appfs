@@ -1,0 +1,16 @@
+Design choices:
+
+1. Sort or Bitmap ?
+   Bitmap:
+     - only works for ints up to 31 bit
+     - is a little slower for small numbers of ints
+     - highly specialized, no choice regarding dublicates or negatives
+     + is faster for larger numbers of ints
+     + takes less space for larger numbers of ints
+
+2. How to read the input
+   direct read
+   buffered fread
+   memory mapped
+
+3. Store data in static buffer or allocate storage on the heap?
