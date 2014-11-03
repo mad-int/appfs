@@ -1,11 +1,11 @@
 appfs
 =====
 
-Lecture material for "Advanced (practical) Programming for Scientists" at TU Berlin
+Lecture material for "Advanced (practical) Programming for Scientists" at TU Berlin: http://www.zib.de/koch/lectures/ws2014_appfs.php
 
 This repository is also available at GitLab TU Berlin: https://gitlab.tubit.tu-berlin.de/mattjsbb/appfs
 
-Important note for ex3:
+Important notes for ex3:
 ---------------
 - do NOT clone this repository
 - fork it, so you have your own copy
