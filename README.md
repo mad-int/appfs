@@ -11,3 +11,4 @@ Important note for ex3:
 - fork it, so you have your own copy
 - push your changes to your local copy
 - submit a pull request via Github
+- read the tutorials to find out how to use Github
