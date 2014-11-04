@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -56,11 +55,10 @@ int main(int argc, char **argv)
 		
 	for (i = 0; i < numbersCount; i++)
 	{	
-		if (numbers[i] < 0)
+		if ((numbers[i] < 0) || ((i > 0) && (numbers[i] == numbers[i - 1])))
 			continue;
+		
 		printf("%d\n", numbers[i]); 
-		if (i > 0)
-			assert(numbers[i] >= numbers[i - 1]);	
 	}
 
 	free(numbers);
