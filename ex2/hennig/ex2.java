@@ -1,0 +1,1 @@
+public class ex2{public static void main(String[] args){String string="class ex2{public static void main(String[]args){String string=%c%s%c;System.out.printf(s,34,s,34);}}";System.out.printf(string,34,string,34);}}
