@@ -8,7 +8,8 @@ GitLab: https://gitlab.tubit.tu-berlin.de/mattjsbb/appfs
 GitHub: https://github.com/mattmilten/appfs
 
 Note for exercise 4:
-Do *NOT* write a Simplex algorithm! Total enumeration means testing all possibilities for feasibility.
+- do *NOT* write a Simplex algorithm! Total enumeration means testing all possibilities for feasibility
+- use the provided ex4_readline if you want to avoid writing your own parser
 
 Please us the Issue/Wiki functionality whenever you encounter a problem during the exercises.
 -----
