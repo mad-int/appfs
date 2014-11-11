@@ -11,11 +11,8 @@
  *         EXIT_SUCCESS if solved
  */
 int solve_lp(const char *filename) {
-    assert(NULL != filename);
-    assert(0 < strlen(filename));
-
     int rows, cols;
-    LinearProgram *lp = new_lp_from_file(filename, lp);
+    LinearProgram *lp = new_lp_from_file(filename);
 
     if (NULL == lp) { /* NULL if not enough memory or wrong format */
         return EXIT_FAILURE;
@@ -30,8 +27,8 @@ int solve_lp(const char *filename) {
 int main(int argc, char** argv) {
     if (argc < 2 || strlen(argv[1]) <= 0)
     {
-       fprintf(stderr, "usage: %s filename", argv[0]);
-       fprintf(stderr, "alternative usage: %s filename outfile", argv[0]);
+       fprintf(stderr, "usage: %s filename\n", argv[0]);
+       fprintf(stderr, "alternative usage: %s filename outfile\n", argv[0]);
        return EXIT_FAILURE;
     }
     // FIXME if argc >= 3 -> fprint_bin_solutions_lp
