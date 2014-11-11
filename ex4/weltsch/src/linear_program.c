@@ -1,25 +1,27 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
 #include "allocate.h"
 #include "linear_program.h"
 
 struct linear_program {
     int rows;
     int cols;
-    int **matrix;
-    int *vector;
+    int** matrix;
+    int* vector;
 };
 
-bool lp_is_valid(LinearProgram *lp) {
+bool lp_is_valid(LinearProgram* lp) {
     return lp->cols &&
         lp->rows &&
         lp->matrix &&
         lp->vector;
 }
 
-LinearProgram *lp_new(int rows, int cols) {
-    LinearProgram *lp = allocate(1, sizeof(*lp));
+LinearProgram* lp_new(int rows, int cols) {
+    LinearProgram* lp = allocate(1, sizeof(*lp));
     lp->rows = rows;
     lp->cols = cols;
 
@@ -41,6 +43,7 @@ LinearProgram *lp_new(int rows, int cols) {
 }
 
 void lp_free(LinearProgram* lp) {
+    assert(lp_is_valid(lp));
     int i;
     for (i = 0; i < lp->cols; i++) {
         deallocate(lp->matrix[i]);
@@ -50,7 +53,7 @@ void lp_free(LinearProgram* lp) {
     deallocate(lp);
 }
 
-bool parse_lp(const char *filename, LinearProgram* lp) {
+bool parse_lp(const char* filename, LinearProgram* lp) {
     return 0;
 }
 
@@ -68,10 +71,13 @@ LinearProgram *new_lp_from_file(const char* filename) {
 }
 
 void print_bin_solutions_lp(LinearProgram* lp) {
+    assert(lp_is_valid(lp));
     fprint_bin_solutions_lp(stdout, lp);
+    assert(lp_is_valid(lp));
 }
 
-void __fprint_config(FILE* stream, int *configuration, int len) {
+void __fprint_config(FILE* stream, int* configuration, int len) {
+    assert(0 < len);
     int j;
     for (j = 0; j < len; j++) {
         fprintf(stream, "%d", configuration[j]);
@@ -79,7 +85,8 @@ void __fprint_config(FILE* stream, int *configuration, int len) {
     fprintf(stream, "\n");
 }
 
-void next_configuration(int *configuration, int len) {
+void next_configuration(int* configuration, int len) {
+    assert(0 < len);
     int i;
     for (i = 0; i < len; i++) {
         if (configuration[i]) {
@@ -91,7 +98,7 @@ void next_configuration(int *configuration, int len) {
     }
 }
 
-bool is_feasible(int *configuration, LinearProgram *lp) {
+bool is_feasible(int* configuration, LinearProgram* lp) {
     int i, j;
     for (i = 0; i < lp->rows; i++) {
         int sum = 0;
