@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "allocate.h"
 
 #define BUF_SIZE 512
 #define USAGE "file must consist of: \n#rows #columns constraints, e.g.:\n\n\
