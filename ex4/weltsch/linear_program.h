@@ -2,17 +2,20 @@
 #define _LINEAR_PROGRAM_H_
 
 #include <stdio.h>
+#include <stdbool.h>
 
 typedef struct linear_program LinearProgram;
 
-LinearProgram *lp_new(int rows, int cols);
+extern LinearProgram *lp_new(int rows, int cols);
 
-void lp_free(LinearProgram* lp);
+extern void lp_free(LinearProgram* lp);
 
-LinearProgram *parse_lp(char *filename, LinearProgram *lp);
+extern bool parse_lp(const char *filename, LinearProgram *lp);
 
-void print_bin_solutions_lp(LinearProgram *lp);
+extern LinearProgram *new_lp_from_file(const char *filename, LinearProgram *lp);
 
-void fprint_bin_solutions_lp(FILE *stream, LinearProgram *lp);
+extern void print_bin_solutions_lp(LinearProgram *lp);
+
+extern void fprint_bin_solutions_lp(FILE *stream, LinearProgram *lp);
 
 #endif
