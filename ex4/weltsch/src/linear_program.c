@@ -60,9 +60,22 @@ char* skip_spaces(char* s) {
     return s;
 }
 
+bool is_num_valid(long num, char* s) {
+    if (num >= INT_MAX || num <= INT_MIN) {
+        fprintf(stderr, "number %ld is to big for an int\n", num);
+        return false;
+    }
+
+    if (!num && *s != '0') {
+        fprintf(stderr, "not a valid integer %s\n", s);
+        return false;
+    }
+    return true;
+}
+
 /* parses a line of the file
  * tries to set the corresponding row in the matrix
- * returns -1 on error
+ * returns false on error
  */
 bool parse_row(char* s, int row, LinearProgram* lp) {
     assert(row < lp->rows);
@@ -71,32 +84,31 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
     char* end_ptr;
     for (i = 0; i < lp->cols; i++) {
         long num = strtol(s, &end_ptr, 10);
-        s = end_ptr;
 
         // check that the long num fits into int
-        if (num >= INT_MAX || num <= INT_MIN) {
-            fprintf(stderr, "number %ld is to big for an int\n", num);
-            return -1;
+
+        if (!is_num_valid(num, s)) {
+            return false;
         }
 
         lp->matrix[row][i] = (int) num;
+        s = end_ptr;
     }
 
     s = skip_spaces(s);
-    if (*s != '<' || *(s+1) != '=') {
+    if (*s == '\0' || *s != '<' || *(s+1) != '=') {
+        printf("not valid stuff 2");
         return false;
     }
     s+=2;
 
 
     long num = strtol(s, &end_ptr, 10);
-    s = end_ptr;
-
-    // check that the long num fits into int
-    if (num >= INT_MAX || num <= INT_MIN) {
-        fprintf(stderr, "number %ld is to big for an int\n", num);
-        return -1;
+    if (!is_num_valid(num, s)) {
+        printf("not valid stuff 3");
+        return false;
     }
+    s = end_ptr;
 
     lp->vector[row] = num;
     return true;

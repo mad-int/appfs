@@ -45,9 +45,9 @@ static void test_lp_parser(void **state) {
 }
 
 static void test_parse_row(void **state) {
-    char* expected_row = "-1123 31234 11234 2123 <= 508976";
+    char* expected_row = "-1123 31234 11234 2123 123 <= 508976";
     LinearProgram* lp = lp_new(1, 5);
-    parse_row(expected_row, 0, lp);
+    assert_true(parse_row(expected_row, 0, lp));
 
     assert_int_equal(lp->matrix[0][0], -1123);
     assert_int_equal(lp->matrix[0][1], 31234);
@@ -61,9 +61,7 @@ static void test_parse_row(void **state) {
 static void test_parse_row_fail(void **state) {
     char* expected_row = "abc 1243 >= c";
     LinearProgram* lp = lp_new(1, 5);
-    int ret_val = parse_row(expected_row, 0, lp);
-
-    assert_int_equal(ret_val, -1);
+    assert_false(parse_row(expected_row, 0, lp));
     lp_free(lp);
 }
 
