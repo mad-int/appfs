@@ -10,6 +10,11 @@
 
 #define MAX_LINE_LEN   512  // Maximum input line length
 
+/* the file parser can have 3 different states, reading #rows, #cols, or
+ * parsing a constraint
+ */
+enum parser_state {READ_ROWS, READ_COLS, READ_CONSTRAINTS};
+
 struct linear_program {
     int rows;
     int cols;
@@ -17,6 +22,7 @@ struct linear_program {
     int* vector;
 };
 
+/* FIXME too simple, are there any other properties to check? */
 bool lp_is_valid(LinearProgram* lp) {
     return lp->cols &&
         lp->rows &&
@@ -50,31 +56,25 @@ char* skip_spaces(char* s) {
     while(isspace(*s)) {
         s++;
     }
+
     return s;
 }
 
-char* skip_number(char* s) {
-    // a number can start with -
-    if (*s == '-') {
-        s++;
-    }
-    while(isdigit(*s)) {
-        s++;
-    }
-    return s;
-}
-
+/* parses a line of the file
+ * tries to set the corresponding row in the matrix
+ * returns -1 on error
+ */
 bool parse_row(char* s, int row, LinearProgram* lp) {
     int i;
     char* end_ptr;
     for (i = 0; i < lp->cols; i++) {
         long num = strtol(s, &end_ptr, 10);
         s = end_ptr;
-        
+
         // check that the long num fits into int
         if (num >= INT_MAX || num <= INT_MIN) {
-            return -1;
             fprintf(stderr, "number %ld is to big for an int\n", num);
+            return -1;
         }
 
         lp->matrix[row][i] = (int) num;
@@ -89,11 +89,11 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
 
     long num = strtol(s, &end_ptr, 10);
     s = end_ptr;
-    
+
     // check that the long num fits into int
     if (num >= INT_MAX || num <= INT_MIN) {
-        return -1;
         fprintf(stderr, "number %ld is to big for an int\n", num);
+        return -1;
     }
 
     lp->vector[row] = num;
@@ -107,6 +107,7 @@ void lp_free(LinearProgram* lp) {
         deallocate(lp->matrix[i]);
     }
 
+    deallocate(lp->matrix);
     deallocate(lp->vector);
     deallocate(lp);
 }
@@ -117,12 +118,16 @@ LinearProgram *new_lp_from_file(const char* filename) {
     assert(NULL != filename);
     assert(0 < strlen(filename));
 
-    bool rows_read = false;
-    int rows = 0;
-    bool cols_read = false;
-    int cols = 0;
+    int rows, cols;
     LinearProgram* lp = NULL;
-    int real_lines = 0;
+
+    /* counts the constraint that were read from file
+     * if constraints < rows -> error
+     * */
+    int constraints = 0;
+
+    /* used to mark distinguish the current state of the parser */
+    int parser_state = READ_COLS;
 
     FILE* fp;
     char  buf[MAX_LINE_LEN];
@@ -138,18 +143,18 @@ LinearProgram *new_lp_from_file(const char* filename) {
     while(NULL != (s = fgets(buf, sizeof(buf), fp)))
     {
         char* t = strpbrk(s, "#\n\r");
-  
+
         lines++;
-        
+
         if (NULL != t) /* else line is not terminated or too long */
             *t = '\0';  /* clip comment or newline */
-       
+
         /* Skip over leading space
         */
         while(isspace(*s)) {
             s++;
         }
- 
+
         /* Skip over empty lines
          */
         if (!*s) { /* <=> (*s == '\0') */
@@ -158,29 +163,29 @@ LinearProgram *new_lp_from_file(const char* filename) {
 
         /* line is nonempty, so try to parse data
          */
-        if (!rows_read) {
+        if (parser_state == READ_COLS) {
+            cols = atoi(s);
+            parser_state = READ_ROWS;
+        } else if (parser_state == READ_ROWS) {
             /* FIXME don't use atoi */
             rows = atoi(s);
-            rows_read = true;
-        } else if (!cols_read) {
-            cols = atoi(s);
-            cols_read = true;
             lp = lp_new(rows, cols);
+            parser_state = READ_CONSTRAINTS;
         } else {
-            bool valid_format = parse_row(s, real_lines, lp);
+            /* stop if a row does not match the format */
+            bool valid_format = parse_row(s, constraints, lp);
             if (!valid_format) {
                 fprintf(stderr, "line %d does not match the required format\n", lines);
                 break;
             }
-            real_lines++;
+            constraints++;
         }
- 
+
     }
     fclose(fp);
- 
-    /* FIXME lines != rows for lp */
-    if (real_lines != rows) {
-        fprintf(stderr, "speciefied #(rows) does not match: %d expected, %d found\n", rows, real_lines);
+
+    if (constraints != rows) {
+        fprintf(stderr, "speciefied #(rows) does not match: %d expected, %d found\n", rows, constraints);
         return NULL;
     }
 
@@ -193,6 +198,7 @@ void print_bin_solutions_lp(LinearProgram* lp) {
     assert(lp_is_valid(lp));
 }
 
+/* print a solution vector */
 void __fprint_config(FILE* stream, int* configuration, int len) {
     assert(0 < len);
     int j;
@@ -202,6 +208,7 @@ void __fprint_config(FILE* stream, int* configuration, int len) {
     fprintf(stream, "\n");
 }
 
+/* return the lexicographically next 0-1 vector */
 void next_configuration(int* configuration, int len) {
     assert(0 < len);
     int i;
@@ -215,6 +222,7 @@ void next_configuration(int* configuration, int len) {
     }
 }
 
+/* check if a vector is a feasible solution to the lp */
 bool is_feasible(int* configuration, LinearProgram* lp) {
     int i, j;
     for (i = 0; i < lp->rows; i++) {
@@ -230,6 +238,7 @@ bool is_feasible(int* configuration, LinearProgram* lp) {
     return true;
 }
 
+/* print all 0-1 solutions to the lp into the outstream */
 void fprint_bin_solutions_lp(FILE* stream, LinearProgram* lp) {
     int* configuration = allocate(lp->cols, sizeof(*configuration));
     unsigned long solutions = 1UL << lp->cols;
@@ -241,4 +250,5 @@ void fprint_bin_solutions_lp(FILE* stream, LinearProgram* lp) {
         }
         next_configuration(configuration, lp->cols);
     }
+    deallocate(configuration);
 }
