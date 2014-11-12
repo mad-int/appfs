@@ -131,7 +131,8 @@ LinearProgram *new_lp_from_file(const char* filename) {
     assert(NULL != filename);
     assert(0 < strlen(filename));
 
-    int rows, cols;
+    int rows = 0;
+    int cols;
     LinearProgram* lp = NULL;
 
     /* counts the constraint that were read from file
@@ -262,7 +263,7 @@ void print_matrix(LinearProgram* lp) {
 /* print all 0-1 solutions to the lp into the outstream */
 void print_bin_solutions_lp(LinearProgram* lp) {
     int* configuration = allocate(lp->cols, sizeof(*configuration));
-    unsigned long solutions = 1UL << lp->cols;
+    long solutions = 1UL << lp->cols;
     int feasible_solutions = 0;
 
     print_matrix(lp);
