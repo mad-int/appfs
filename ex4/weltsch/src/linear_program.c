@@ -66,6 +66,7 @@ bool is_num_valid(long num, char* s) {
         return false;
     }
 
+    s = skip_spaces(s);
     if (!num && *s != '0') {
         fprintf(stderr, "not a valid integer %s\n", s);
         return false;
@@ -201,6 +202,7 @@ LinearProgram *new_lp_from_file(const char* filename) {
         return NULL;
     }
 
+    printf("%d lines\n", lines);
     return lp;
 }
 
@@ -215,7 +217,7 @@ void __fprint_config(FILE* stream, int* configuration, int len) {
     assert(0 < len);
     int j;
     for (j = 0; j < len; j++) {
-        fprintf(stream, "%d\t", configuration[j]);
+        fprintf(stream, "%d ", configuration[j]);
     }
     fprintf(stream, "\n");
 }
@@ -250,17 +252,36 @@ bool is_feasible(int* configuration, LinearProgram* lp) {
     return true;
 }
 
+void fprint_matrix(FILE* stream, LinearProgram* lp) {
+    fprintf(stream, "nvars: %d\n", lp->cols);
+    fprintf(stream, "nconss: %d\n", lp->rows);
+    int i, j;
+    for (i = 0; i < lp->rows; i++) {
+        for (j = 0; j < lp->cols; j++) {
+            fprintf(stream, "%d ", lp->matrix[i][j]);
+        }
+        fprintf(stream, "<= ");
+        fprintf(stream, "%d\n", lp->vector[i]);
+    }
+}
+
 /* print all 0-1 solutions to the lp into the outstream */
 void fprint_bin_solutions_lp(FILE* stream, LinearProgram* lp) {
     int* configuration = allocate(lp->cols, sizeof(*configuration));
     unsigned long solutions = 1UL << lp->cols;
+    int feasible_solutions = 0;
+
+    fprint_matrix(stream, lp);
+    fprintf(stream, "\n");
 
     int i;
     for (i = 0; i < solutions; i++) {
         if (is_feasible(configuration, lp)) {
             __fprint_config(stream, configuration, lp->cols);
+            feasible_solutions++;
         }
         next_configuration(configuration, lp->cols);
     }
     deallocate(configuration);
+    fprintf(stream, "found %d feasible solutions\n", feasible_solutions);
 }
