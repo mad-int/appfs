@@ -97,7 +97,6 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
 
     s = skip_spaces(s);
     if (*s == '\0' || *s != '<' || *(s+1) != '=') {
-        printf("not valid stuff 2");
         return false;
     }
     s+=2;
@@ -105,7 +104,6 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
 
     long num = strtol(s, &end_ptr, 10);
     if (!is_num_valid(num, s)) {
-        printf("not valid stuff 3");
         return false;
     }
     s = end_ptr;
