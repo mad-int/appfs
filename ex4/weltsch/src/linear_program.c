@@ -35,12 +35,12 @@ LinearProgram* lp_new(int rows, int cols) {
     lp->rows = rows;
     lp->cols = cols;
 
-    int** matrix = allocate(cols, sizeof(*matrix));
+    int** matrix = allocate(rows, sizeof(*matrix));
 
     int i;
     // initialize every row with 0s
-    for (i = 0; i < cols; i++) {
-        matrix[i] = allocate(rows, sizeof(*matrix[i]));
+    for (i = 0; i < rows; i++) {
+        matrix[i] = allocate(cols, sizeof(*matrix[i]));
     }
 
     int* vector = allocate(rows, sizeof(*vector));
@@ -65,6 +65,8 @@ char* skip_spaces(char* s) {
  * returns -1 on error
  */
 bool parse_row(char* s, int row, LinearProgram* lp) {
+    assert(row < lp->rows);
+
     int i;
     char* end_ptr;
     for (i = 0; i < lp->cols; i++) {
@@ -103,7 +105,7 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
 void lp_free(LinearProgram* lp) {
     assert(lp_is_valid(lp));
     int i;
-    for (i = 0; i < lp->cols; i++) {
+    for (i = 0; i < lp->rows; i++) {
         deallocate(lp->matrix[i]);
     }
 
