@@ -206,20 +206,14 @@ LinearProgram *new_lp_from_file(const char* filename) {
     return lp;
 }
 
-void print_bin_solutions_lp(LinearProgram* lp) {
-    assert(lp_is_valid(lp));
-    fprint_bin_solutions_lp(stdout, lp);
-    assert(lp_is_valid(lp));
-}
-
 /* print a solution vector */
-void __fprint_config(FILE* stream, int* configuration, int len) {
+void __print_config(int* configuration, int len) {
     assert(0 < len);
     int j;
     for (j = 0; j < len; j++) {
-        fprintf(stream, "%d ", configuration[j]);
+        printf("%d ", configuration[j]);
     }
-    fprintf(stream, "\n");
+    printf("\n");
 }
 
 /* return the lexicographically next 0-1 vector */
@@ -252,36 +246,36 @@ bool is_feasible(int* configuration, LinearProgram* lp) {
     return true;
 }
 
-void fprint_matrix(FILE* stream, LinearProgram* lp) {
-    fprintf(stream, "nvars: %d\n", lp->cols);
-    fprintf(stream, "nconss: %d\n", lp->rows);
+void print_matrix(LinearProgram* lp) {
+    printf("nvars: %d\n", lp->cols);
+    printf("nconss: %d\n", lp->rows);
     int i, j;
     for (i = 0; i < lp->rows; i++) {
         for (j = 0; j < lp->cols; j++) {
-            fprintf(stream, "%d ", lp->matrix[i][j]);
+            printf("%d ", lp->matrix[i][j]);
         }
-        fprintf(stream, "<= ");
-        fprintf(stream, "%d\n", lp->vector[i]);
+        printf("<= ");
+        printf("%d\n", lp->vector[i]);
     }
 }
 
 /* print all 0-1 solutions to the lp into the outstream */
-void fprint_bin_solutions_lp(FILE* stream, LinearProgram* lp) {
+void print_bin_solutions_lp(LinearProgram* lp) {
     int* configuration = allocate(lp->cols, sizeof(*configuration));
     unsigned long solutions = 1UL << lp->cols;
     int feasible_solutions = 0;
 
-    fprint_matrix(stream, lp);
-    fprintf(stream, "\n");
+    print_matrix(lp);
+    printf("\n");
 
     int i;
     for (i = 0; i < solutions; i++) {
         if (is_feasible(configuration, lp)) {
-            __fprint_config(stream, configuration, lp->cols);
+            __print_config(configuration, lp->cols);
             feasible_solutions++;
         }
         next_configuration(configuration, lp->cols);
     }
     deallocate(configuration);
-    fprintf(stream, "found %d feasible solutions\n", feasible_solutions);
+    printf("found %d feasible solutions\n", feasible_solutions);
 }
