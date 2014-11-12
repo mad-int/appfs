@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "allocate.h"
 
 #define BUF_SIZE 512
 #define USAGE "file must consist of: \n#rows #columns constraints, e.g.:\n\n\
@@ -11,9 +12,9 @@
 
 int fillRow(int* row, char* inputString, char* delimiter);
 void printMatrix(int** matrix, int rows, int columns);
-unsigned char* giveFeasibles(int** matrix, int rows, int columns, int* rhs);
-void printBitRepresentation(unsigned char* vectors, int vector_size, int vector_dim);
-static unsigned int powers[32] = {1,2,4,8,16,32,64,128,256,512,1024,
+int giveFeasibles(unsigned char* feasibles, int** matrix, int rows, int columns, int* rhs);
+void printBinaryVectors(unsigned char* vectors, int vector_size, int vector_dim);
+static unsigned const int powers[32] = {1,2,4,8,16,32,64,128,256,512,1024,
 								2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576, 
 								2097152, 4194304, 8388608, 16777216, 33554432, 67108864, 
 								134217728, 268435456, 536870912, 1073741824, 2147483648};
@@ -72,25 +73,25 @@ int readConstraints(const char* filename) {
 			}
 			if (lines == 1) {
 				/* ready to initialize matrix and rhs-vector */
-				matrix = calloc(dimension[1], sizeof(*matrix));
+				matrix = allocate(dimension[1], sizeof(*matrix));
 				
 				for(int i = 0; i < dimension[1]; ++i)
 				{
-					matrix[i] = calloc(dimension[0], sizeof(*matrix[i]));
+					matrix[i] = allocate(dimension[0], sizeof(*matrix[i]));
 				}
-				b = calloc(dimension[1], sizeof(*b));
+				b = allocate(dimension[1], sizeof(*b));
 			}
 		}
 		else {
-			char* help_me = calloc(BUF_SIZE, sizeof(*help_me));
+			char* help_me = allocate(BUF_SIZE, sizeof(*help_me));
 			strcpy(help_me, s);
 			if (dimension[0] != fillRow(matrix[lines - 2], strtok(s,"<="), " ")) {
 				// free pointer:
 				for(int i = 0; i < dimension[1]; ++i) {
-					free(matrix[i]);
+					deallocate(matrix[i]);
 				}
-				free(matrix);
-				free(b);
+				deallocate(matrix);
+				deallocate(b);
 				printf(USAGE);
 				return -1;
 			}
@@ -104,17 +105,19 @@ int readConstraints(const char* filename) {
 	}
 	
 	//printMatrix(matrix, dimension[1], dimension[0]);
-	unsigned char* feasibles = giveFeasibles(matrix, dimension[1], dimension[0], b);
-	printBitRepresentation(feasibles, powers[dimension[0]],dimension[0]);
+	unsigned char* feasibles = allocate(powers[dimension[0]],sizeof(*feasibles));
+	int numberOfFeasibles = giveFeasibles(feasibles, matrix, dimension[1], dimension[0], b);
+	
+	printBinaryVectors(feasibles, powers[dimension[0]],dimension[0]);
+	printf("\nWe got %d feasible solutions in total!\n", numberOfFeasibles); 
 	
 	// free pointer:
 	for(int i = 0; i < dimension[1]; ++i) {
 		free(matrix[i]);
 	}
-	free(matrix);
-	free(b);
-	// Not good to free feasibles here... sorry
-	free(feasibles);
+	deallocate(matrix);
+	deallocate(b);
+	deallocate(feasibles);
 	
 	fclose(fp);
 	return lines;
@@ -146,7 +149,7 @@ void printMatrix(int** matrix, int rows, int columns) {
 
 // @param vector_size number of different vectors
 // @param vector_dim dimension of one vector (n) 
-void printBitRepresentation(unsigned char* vectors, int vector_size, int vector_dim) {
+void printBinaryVectors(unsigned char* vectors, int vector_size, int vector_dim) {
 	int counter = 0;
 	for(unsigned int j = 0; j < vector_size; ++j) {
 		if (*(vectors + j)) {
@@ -163,17 +166,16 @@ void printBitRepresentation(unsigned char* vectors, int vector_size, int vector_
 			printf("\n");
 		}
 	}
-	printf("\nWe got %d feasible solutions in total!\n", counter); 
 }
 
 // gives back some char array where the i-th entry set to 1 indicates
 // that his bit-representation is a feasible assignement to x
-unsigned char* giveFeasibles(int** matrix, int rows, int columns, int* rhs) {
+int giveFeasibles(unsigned char* feasibles, int** matrix, int rows, int columns, int* rhs) {
 				
+	int counter = 0;
 	char x_is_valid;
 	int row_result;
 	// initialize array of chars - we need one for each possible vector x
-	unsigned char* index_vector = calloc(powers[columns],sizeof(*index_vector));
 
 	//for each incidencevector
 	for(unsigned int j = 0; j < powers[columns]; ++j) {
@@ -196,10 +198,11 @@ unsigned char* giveFeasibles(int** matrix, int rows, int columns, int* rhs) {
 			}
 		}
 		if (x_is_valid) {
-			*(index_vector + j) = 1;
+			counter++;
+			*(feasibles + j) = 1;
 		}
 	}
-	return index_vector;
+	return counter;
 }
 
 /**
