@@ -131,7 +131,7 @@ int TestSolutionForConstraint(const struct IneqConstraint *constraint, const str
 	assert(constraint);
 	assert(solution);	
 	int j;
-	int sum = 0;
+	unsigned int sum = 0;
 	for (j = 0; j < solution->variablesCount; ++j)
 		sum += GetBinaryVectorComponent(solution, j) * constraint->coefficients[j];
 	return (sum <= constraint->condition) ? 0 : 1;

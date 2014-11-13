@@ -23,11 +23,15 @@ int main(int argc, char **argv)
 	struct IneqSystem *system = ReadIneqSystemData(file);
 	fclose(file);
 
-	int value;
+	
 	struct BinaryVector solution;	
 	int solutionsCount = 0;	
 	solution.variablesCount = system->variablesCount;
-	for (value = 0; value < (1 << system->variablesCount); ++value)
+	uint32_t max = (1 << system->variablesCount);
+	if (system->variablesCount == MAX_VARIABLES)
+		max = 0;
+	uint32_t value = 0;
+	do
 	{
 		solution.bitmap = value;
 		int res = TestSolutionForSystem(system, &solution);
@@ -36,7 +40,9 @@ int main(int argc, char **argv)
 			solutionsCount++;
 			PrintSolution(&solution);
 		}
+		++value;
 	} 
+	while (value != max);
 	printf("Solutions count: %d\n", solutionsCount);
 
 	DeallocateIneqSystem(system);
