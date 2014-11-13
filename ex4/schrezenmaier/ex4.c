@@ -1,5 +1,5 @@
 /**@file   ex4.c
- * @brief  TODO Appfs Example: line wise text input.
+ * @brief  Appfs Exercise 4: Read linear program Ax<=b and print all feasible binary solutions.
  * @author Hendrik Schrezenmaier
  * @date   12Nov2014
  *
@@ -12,18 +12,19 @@
 #include <string.h>  // strpbrk
 #include <assert.h>  // assert
 #include <ctype.h>   // isspace
-#include "allocate.h"
 
 #define MAX_LINE_LEN   512  // Maximum input line length
 
-/** Read a textfile, remove comments and process lines.
+/** Read a linear program from text file, calculate its feasible binary solutions and print them to a text file.
  * @param filename name of file to read
- * @return number of lines read
+ * @param out_filename name of file to write to
  */
-int process_file(const char* filename)
+void process_file(const char* filename, const char* out_filename)
 {
    assert(NULL != filename);
-   assert(0    <  strlen(filename));
+   assert(0 < strlen(filename));
+	 assert(NULL != out_filename);
+	 assert(0 < strlen(out_filename));
 
    FILE* fp;
    char  buf[MAX_LINE_LEN];
@@ -35,16 +36,11 @@ int process_file(const char* filename)
 	 int *b;
    
    if (NULL == (fp = fopen(filename, "r")))
-   {
       fprintf(stderr, "Can't open file %s\n", filename);
-      return -1;
-   }
    while(NULL != (s = fgets(buf, sizeof(buf), fp)))
    {
       char* t = strpbrk(s, "#\n\r");
 
-      /*lines++;*/
-      
       if (NULL != t) /* else line is not terminated or too long */
          *t = '\0';  /* clip comment or newline */
          
@@ -58,21 +54,15 @@ int process_file(const char* filename)
       if (!*s)  /* <=> (*s == '\0') */
          continue;
 
-      /* do processing here
-       */
-			
-			if(lines == 0)
+      if(lines == 0)
 				 var = atoi(s);
 			else if(lines == 1) {
 				 constr = atoi(s);
 				 A = malloc(constr * sizeof(A));
 				 b = malloc(constr * sizeof(b));
-				 /*A = allocate(constr, sizeof(A));
-				 b = allocate(constr, sizeof(b));*/
 			}
 			else if(lines >= 2) {
 				 A[lines-2] = malloc(var * sizeof(A[0]));
-				 /*A[lines-2] = allocate(var, sizeof(A[lines-2]));*/
 				 int i = 0;
 				 char *ptr;
 				 ptr = strtok(s, " ");
@@ -91,27 +81,27 @@ int process_file(const char* filename)
    }
    fclose(fp);
 	 
-	 printf("var: %i\n", var);
-	 printf("constr: %i\n", constr);
-	 printf("b: ");
-	 int i;
-	 for(i=0; i < constr; ++i)
-		  printf("%i ",b[i]);
-	 printf("\nM:\n");
-	 for(i=0; i < constr; ++i){
-		  int j;
-			for(j=0; j < var; ++j)
-				 printf("%i ", A[i][j]);
-			printf("\n");
-	 }
-	 
-	 getFeasibleBinary(A, b, var, constr);
-
-   return lines;
+	 printFeasibleBinary(A, b, var, constr, out_filename);
 }
 
-void getFeasibleBinary(int** A, int* b, int var, int constr)
+/** Calculate the feasible binary solutions of the given linear program and print them to a text file.
+ * @param A the matrix of the linear program Ax<=b
+ * @param b the right hand side of the linear program Ax<=b
+ * @param var the number of variables
+ * @param constr the number of constraints
+ * @param out_filename name of the file to write the solutions to
+ */
+void printFeasibleBinary(int** A, int* b, int var, int constr, const char* out_filename)
 {
+	 assert(NULL != out_filename);
+	 assert(0 < strlen(out_filename));
+	
+	 FILE *output;
+	 if(NULL == (output = fopen(out_filename, "w")))
+	 {
+		  fprintf(stderr, "Can't open file %s\n", out_filename);
+	 }
+	 
    int x = 0;
 	 int max = 1 << var;
 	 if (var == 32)
@@ -137,26 +127,27 @@ void getFeasibleBinary(int** A, int* b, int var, int constr)
 			}
 			if (feasible)
 		  {
-				 /*for(i=0;i<var;++i)
+				 for(i=0;i<var;++i)
 				 {
-					  printf("%i",((x >> i) & 1));
+					  fprintf(output, "%i",((x >> i) & 1));
 				 }
-				 printf("\n");*/
+				 fprintf(output, "\n");
 				 ++solutions;
 			}
 		  ++x;
 	 } while(x != max);
-	 printf("solutions: %i\n", solutions);
+	 fclose(output);
+	 printf("printed %i solutions to file\n", solutions);
 }
 
 int main(int argc, char** argv)
 {
-   if (argc < 2 || strlen(argv[1]) <= 0)
+   if (argc < 3 || strlen(argv[1]) <= 0 || strlen(argv[2]) <= 0)
    {
-      fprintf(stderr, "usage: %s filename", argv[0]);
+      fprintf(stderr, "usage: %s input_filename output_filename", argv[0]);
       return EXIT_FAILURE;
    }
-   printf("%d lines\n", process_file(argv[1]));
+   process_file(argv[1], argv[2]);
    
    return EXIT_SUCCESS;
 }
