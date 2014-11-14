@@ -88,17 +88,24 @@ int process_file( const char* filename, ROW*** matrix, int* rows, int* cols )
          {
             while(isspace(*s))
                s++;
-	    
+	    /* s is pointing to first non space that we assume is a number */
             r = s;
+	    /* r is pointing to same place */
             while(!isspace(*r))
                r++;
+	    /* r is pointing to a whitespace....  */
 
             entry = strtol(s, &r, 0);
+	    /* so if str is "86 10 34 ..."
+                             s r
+              we obtain the number from s until r
+              and entry stores 86 */
 	    /* printf("read entry: %d\n", entry); */
 
             /* store it in matrix */ 
             (*matrix)[lines-3]->coefs[j] = entry;
-            s = r;
+	    /* we want to go to next number... so s points to where r was pointing! */
+	    s = r;
          }
          /* get type of inequality */
          while(isspace(*s))
@@ -122,6 +129,7 @@ int process_file( const char* filename, ROW*** matrix, int* rows, int* cols )
                break;
          }
          /* get rhs */
+	 /* s is pointing to the first of two characters '==' or '<=' ... so we have to add 2 */
          s += 2;
          rhs = strtol(s, NULL, 0);
          /* printf("rhs is %d\n", rhs); */
@@ -131,6 +139,7 @@ int process_file( const char* filename, ROW*** matrix, int* rows, int* cols )
    fclose(fp);
    return lines;
 }
+
 void print_matrix( ROW** matrix, int nrows, int ncols )
 {
    int i;
@@ -161,6 +170,7 @@ void print_matrix( ROW** matrix, int nrows, int ncols )
       }
    }
 }
+
 /*
     say we have 0000,
     next sol is 1000,
@@ -186,6 +196,7 @@ int next_sol(int* sol, int ncols)
    }
    return 0; /* there is no further point */
 }
+
 int test_sol(int* sol,ROW** matrix,int nrows,int ncols)
 {
    int lhs;
