@@ -1,6 +1,7 @@
 #ifndef VECTOR_H
 #define VECTOR_H
-#include <iostream>
+#include <assert.h>
+#include <vector>
 
 class Vector
 {
@@ -26,7 +27,7 @@ class Vector
 
     protected:
         //members
-        int* arr;
+        std::vector<int> arr;
 
 };
 

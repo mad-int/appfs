@@ -1,5 +1,7 @@
 #ifndef MATRIX_H
 #define MATRIX_H
+#include <assert.h>
+#include <vector>
 #include <Vector.h>
 
 
@@ -29,7 +31,7 @@ class Matrix
 
     protected:
         //members
-        int* arr;
+        std::vector<int> arr;
 };
 
 #endif // MATRIX_H

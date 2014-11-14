@@ -16,12 +16,19 @@
 using namespace std;
 
 void dec2bin(int, Vector&);
-int process_file(const char* filename);
+int process_file(const char* filename, Matrix&, Vector&);
 
 void printVector(Vector& x){
     for(int i = 0; i < x.dimension;i++)
         cout << x.getValue(i) << " ";
     cout << endl;
+}
+void printMatrix(Matrix*& mat){
+    for(int i=0;i<mat->rows;i++){
+        for(int j=0;j<mat->columns;j++)
+            cout << mat->getValue(i,j) << " ";
+        cout << endl;
+    }
 }
 
 int main(int argc, char** argv){
@@ -34,12 +41,24 @@ int main(int argc, char** argv){
     /*  Have to initialize objects already, otherwise get an error due to rvalue,
         how can I avoid that?
     */
+    Matrix mat;
+    Vector b;
 
-    int maxSolutions = pow(2,columns);
+    /* fill mat and b with data from file
+    */
+    process_file(argv[1],mat,b);
+
+    /* get every possible configuration of 0 and 1 to represent the x vector
+        and check whether it yields the constraints
+        */
+    int maxSolutions = pow(2,mat.columns);
     for(int k = 0;k < maxSolutions;k++){
-        Vector x(columns);
+        Vector x(mat.columns);
         dec2bin(k,x);
-        Vector sum = matrix.multiply(x);
+        Vector sum(mat.multiply(x));
+
+        /* print out all feasible solutions
+        */
         if(sum.lessOrEqual(b))
             printVector(x);
     }
@@ -47,7 +66,7 @@ int main(int argc, char** argv){
     return 0;
 }
 
-int process_file(const char* filename)
+int process_file(const char* filename, Matrix& mat, Vector& b)
 {
    assert(NULL != filename);
    assert(0    <  strlen(filename));
@@ -84,10 +103,29 @@ int process_file(const char* filename)
          continue;
 
       /* Process binary program here
-	  Don't know how to touch it. Tried giving matrix and vector as reference,
-	  but it wouldn't store the data I gave into it permanently, meaning,
-	  as soon as it left the function, matrix.columns = 0 again.
        */
+
+       if(lines == 1){
+            mat.rows = atoi(s);
+            b.dimension = atoi(s);
+            b.init();
+            continue;
+       }
+       if(lines == 2){
+            mat.columns = atoi(s);
+            mat.init();
+            continue;
+       }
+
+       /* add row from current line to matrix
+       */
+       for(int i = 0; i < mat.columns; i++){
+            mat.setValue(lines-3,i,atoi(s+2*i));
+       }
+
+       /* add constraint to b
+       */
+       b.setValue(lines-3, atoi(s+2*mat.columns+3));
 	}
    fclose(fp);
 

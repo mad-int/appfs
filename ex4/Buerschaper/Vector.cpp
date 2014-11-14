@@ -4,26 +4,27 @@ Vector::Vector(){}
 
 Vector::Vector(int n){
     dimension = n;
-    arr = new int(dimension);
-    for(int i = 0; i < n; i++)
-        arr[i] = 0;
+    arr.reserve(dimension);
+    for(int i = 0; i < dimension; i++)
+         arr.push_back(0);
 }
 
 Vector::~Vector(){
-    delete arr;
 }
 
 void Vector::init(){
-    arr[dimension];
+    arr.reserve(dimension);
     for(int i = 0; i < dimension; i++)
-        arr[i] = 0;
+         arr.push_back(0);
 }
 
 void Vector::setValue(int pos, int value){
+    assert(0 <= pos && pos < dimension);
     arr[pos] = value;
 }
 
 int Vector::getValue(int pos){
+    assert(0 <= pos && pos < dimension);
     return arr[pos];
 }
 
