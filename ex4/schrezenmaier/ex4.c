@@ -15,6 +15,80 @@
 
 #define MAX_LINE_LEN   512  // Maximum input line length
 
+/** Calculate the feasible binary solutions of the given linear program and print them to a text file.
+ *  @param A the matrix of the linear program Ax<=b
+ *  @param b the right hand side of the linear program Ax<=b
+ *  @param var the number of variables
+ *  @param constr the number of constraints
+ *  @param out_filename name of the file to write the solutions to
+ */
+void printFeasibleBinary(int** A, int* b, int var, int constr, const char* out_filename)
+{
+    assert(NULL != out_filename);
+    assert(0 < strlen(out_filename));
+   
+    FILE *output;
+    if(NULL == (output = fopen(out_filename, "w")))
+    {
+        fprintf(stderr, "Can't open file %s\n", out_filename);
+    }
+    
+    long x = 0l;
+    long x_count = 0l;
+    int eval[constr];
+    int i;
+    for(i=0; i < constr; ++i)
+       eval[i] = 0;
+    int solutions = 0;
+    while(1)
+    {
+       /* check current vector for feasibility */
+       int feasible = 1;
+       for(i = 0; i < constr; ++i)
+       {
+          if(eval[i] > b[i])
+          {
+             feasible = 0;
+             break;
+          }
+       }
+       
+       /* print feasible solution to file */
+       if (feasible)
+       {
+          for(i=0;i<var;++i)
+          {
+             fprintf(output, "%ld",((x >> i) & 1l));
+          }
+          fprintf(output, "\n");
+          ++solutions;
+       }
+       
+       /* calculate new vector in gray code */
+       ++x_count;
+       long x_new = x_count ^ (x_count >> 1);
+       long diff = x_new ^ x;
+       int changed_var = 0;
+       while((1ul & diff) == 0)
+       {
+          ++changed_var;
+          diff >>= 1;
+       }
+       if(changed_var >= var)
+          break;
+       x = x_new;
+       
+       /* calculate new evaluation */
+       int sign = -1;
+       if(x & (1ul << changed_var))
+          sign = 1;
+       for(i = 0; i < constr; ++i)
+          eval[i] += sign * A[i][changed_var];
+    }
+    fclose(output);
+    printf("printed %i solutions to file\n", solutions);
+}
+
 /** Read a linear program from text file, calculate its feasible binary solutions and print them to a text file.
  * @param filename name of file to read
  * @param out_filename name of file to write to
@@ -82,62 +156,6 @@ void process_file(const char* filename, const char* out_filename)
    fclose(fp);
 	 
 	 printFeasibleBinary(A, b, var, constr, out_filename);
-}
-
-/** Calculate the feasible binary solutions of the given linear program and print them to a text file.
- * @param A the matrix of the linear program Ax<=b
- * @param b the right hand side of the linear program Ax<=b
- * @param var the number of variables
- * @param constr the number of constraints
- * @param out_filename name of the file to write the solutions to
- */
-void printFeasibleBinary(int** A, int* b, int var, int constr, const char* out_filename)
-{
-	 assert(NULL != out_filename);
-	 assert(0 < strlen(out_filename));
-	
-	 FILE *output;
-	 if(NULL == (output = fopen(out_filename, "w")))
-	 {
-		  fprintf(stderr, "Can't open file %s\n", out_filename);
-	 }
-	 
-   int x = 0;
-	 int max = 1 << var;
-	 if (var == 32)
-		  max = 0;
-	 int solutions = 0;
-	 do
-	 {
-		  int i;
-			int feasible = 1;
-		  for(i=0; i < constr; i++)
-			{
-				 int sum = 0;
-				 int j;
-				 for(j=0;j<var;++j)
-				 {
-					  sum += ((x & (1 << j)) >> j) * A[i][j];
-				 }
-				 if (sum > b[i])
-				 {
-					  feasible = 0;
-						break;
-				 }
-			}
-			if (feasible)
-		  {
-				 for(i=0;i<var;++i)
-				 {
-					  fprintf(output, "%i",((x >> i) & 1));
-				 }
-				 fprintf(output, "\n");
-				 ++solutions;
-			}
-		  ++x;
-	 } while(x != max);
-	 fclose(output);
-	 printf("printed %i solutions to file\n", solutions);
 }
 
 int main(int argc, char** argv)
