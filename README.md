@@ -7,6 +7,6 @@ GitLab: https://gitlab.tubit.tu-berlin.de/mattjsbb/appfs
 
 GitHub: https://github.com/mattmilten/appfs
 
-#### use the shared directory `data/` for test instances
+ - use the shared directory `data/` for test instances
 
 #### Please us the Issue/Wiki functionality whenever you encounter a problem during the exercises.
