@@ -3,7 +3,7 @@
  * @author Hendrik Schrezenmaier
  * @date   12Nov2014
  *
- * gcc -O2 -Wall -o ex4_readline ex4_readline.c
+ * gcc -O2 -Wall -o ex4 ex4.c
  *
  * Using fgets() for input
  */  
@@ -12,6 +12,7 @@
 #include <string.h>  // strpbrk
 #include <assert.h>  // assert
 #include <ctype.h>   // isspace
+#include "linear_program.h"
 
 #define MAX_LINE_LEN   512  // Maximum input line length
 
@@ -86,7 +87,7 @@ void printFeasibleBinary(int** A, int* b, int var, int constr, const char* out_f
           eval[i] += sign * A[i][changed_var];
     }
     fclose(output);
-    printf("printed %i solutions to file\n", solutions);
+    printf("printed %i solutions to file %s\n", solutions, out_filename);
 }
 
 /** Read a linear program from text file, calculate its feasible binary solutions and print them to a text file.
@@ -97,8 +98,8 @@ void process_file(const char* filename, const char* out_filename)
 {
    assert(NULL != filename);
    assert(0 < strlen(filename));
-	 assert(NULL != out_filename);
-	 assert(0 < strlen(out_filename));
+   assert(NULL != out_filename);
+   assert(0 < strlen(out_filename));
 
    FILE* fp;
    char  buf[MAX_LINE_LEN];
@@ -160,12 +161,15 @@ void process_file(const char* filename, const char* out_filename)
 
 int main(int argc, char** argv)
 {
-   if (argc < 3 || strlen(argv[1]) <= 0 || strlen(argv[2]) <= 0)
+   if (argc < 3)
    {
-      fprintf(stderr, "usage: %s input_filename output_filename", argv[0]);
+      fprintf(stderr, "usage: %s input_filename output_filename\n", argv[0]);
       return EXIT_FAILURE;
    }
-   process_file(argv[1], argv[2]);
+   
+   LinearProgram* lp = read_from_file_lp(argv[1]);
+   print_lp(lp);
+   print_feasible_binary_lp(lp, argv[2]);
    
    return EXIT_SUCCESS;
 }
