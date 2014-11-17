@@ -10,6 +10,25 @@
 
 #define MAX_LINE_LEN   512  // Maximum input line length
 
+#ifdef USE_DOUBLE
+
+typedef num_t double;
+num_t parse_num(char* num_str, char** end_ptr) {
+    return strtod(num_str, end_ptr);
+}
+
+boolean is_num_valid(num_t num, char* num_str, char* end_str) {
+}
+
+#else
+
+typedef num_t int;
+num_t parse_num(char* num_str, char** end_ptr) {
+    return strtol(num_str, end_ptr, 10);
+}
+
+#endif
+
 /* the file parser can have 3 different states, reading #rows, #cols, or
  * parsing a constraint
  */
@@ -60,14 +79,13 @@ char* skip_spaces(char* s) {
     return s;
 }
 
-bool is_num_valid(long num, char* s) {
+bool is_num_valid(long num, char* s, char* end_ptr) {
     if (num >= INT_MAX || num <= INT_MIN) {
         fprintf(stderr, "number %ld is to big for an int\n", num);
         return false;
     }
 
-    s = skip_spaces(s);
-    if (!num && *s != '0') {
+    if (s == end_ptr) {
         fprintf(stderr, "not a valid integer %s\n", s);
         return false;
     }
@@ -86,9 +104,7 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
     for (i = 0; i < lp->cols; i++) {
         long num = strtol(s, &end_ptr, 10);
 
-        // check that the long num fits into int
-
-        if (!is_num_valid(num, s)) {
+        if (!is_num_valid(num, s, end_ptr)) {
             return false;
         }
 
@@ -104,7 +120,7 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
 
 
     long num = strtol(s, &end_ptr, 10);
-    if (!is_num_valid(num, s)) {
+    if (!is_num_valid(num, s, end_ptr)) {
         return false;
     }
     s = end_ptr;
@@ -165,9 +181,7 @@ LinearProgram *new_lp_from_file(const char* filename) {
 
         /* Skip over leading space
         */
-        while(isspace(*s)) {
-            s++;
-        }
+        s = skip_spaces(s);
 
         /* Skip over empty lines
          */
