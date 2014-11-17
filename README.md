@@ -7,9 +7,7 @@ GitLab: https://gitlab.tubit.tu-berlin.de/mattjsbb/appfs
 
 GitHub: https://github.com/mattmilten/appfs
 
-#### Notes for exercise 4:
-- please submit a pull request for your code - the submissions will then be tested for correctness
-- do *NOT* write a Simplex algorithm! Total enumeration means testing all possibilities for feasibility
-- use the provided ex4_readline if you want to avoid writing your own parser
+ - It would be nice to have Makefiles for your code to make compiling easier
+ - Use the shared directory `data/` for test instances
 
 #### Please us the Issue/Wiki functionality whenever you encounter a problem during the exercises.
