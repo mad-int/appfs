@@ -12,17 +12,17 @@
 
 #ifdef USE_DOUBLE
 
-typedef num_t double;
+typedef double num_t;
 num_t parse_num(char* num_str, char** end_ptr) {
     return strtod(num_str, end_ptr);
 }
 
-boolean is_num_valid(num_t num, char* num_str, char* end_str) {
+bool is_num_valid(num_t num, char* num_str, char* end_str) {
 }
 
 #else
 
-typedef num_t int;
+typedef int num_t;
 num_t parse_num(char* num_str, char** end_ptr) {
     return strtol(num_str, end_ptr, 10);
 }
