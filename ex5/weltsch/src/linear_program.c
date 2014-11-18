@@ -4,12 +4,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "allocate.h"
 #include "linear_program.h"
 #include "num_type.h"
 
 #define MAX_LINE_LEN   512  // Maximum input line length
+
+#define GET_SEC(a, b) ((b - a) / (double)CLOCKS_PER_SEC)
 
 /* the file parser can have 3 different states, reading #rows, #cols, or
  * parsing a constraint
@@ -248,20 +251,27 @@ void print_matrix(LinearProgram* lp) {
 /* print all 0-1 solutions to the lp into the outstream */
 void print_bin_solutions_lp(LinearProgram* lp) {
     num_t* configuration = allocate(lp->cols, sizeof(*configuration));
-    long solutions = 1UL << lp->cols;
-    int feasible_solutions = 0;
+    unsigned long count = 1UL << lp->cols;
+    unsigned int feasible_solutions = 0;
 
     print_matrix(lp);
     printf("\n");
 
-    int i;
-    for (i = 0; i < solutions; i++) {
+    clock_t start = clock();
+
+    unsigned int i;
+    for (i = 0; i < count; i++) {
         if (is_feasible(configuration, lp)) {
             __print_config(configuration, lp->cols);
             feasible_solutions++;
         }
         next_configuration(configuration, lp->cols);
     }
+
+    double elapsed = GET_SEC(start, clock());
+    printf("Checked %lu vectors in %.3f s = %.3f kvecs/s\n",
+            count, elapsed, count / elapsed / 1000.0);
+
     deallocate(configuration);
-    printf("found %d feasible solutions\n", feasible_solutions);
+    printf("found %u feasible solutions\n", feasible_solutions);
 }
