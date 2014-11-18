@@ -6,6 +6,8 @@
 #include "../src/linear_program.c"
 #define TEST_FILE_1 "test_file_1"
 #define TEST_FILE_2 "feasibility_check"
+#define TEST_FILE_3 "feasibility_check_geq"
+#define TEST_FILE_4 "feasibility_check_eq"
 
 /* creates a new lp */
 static void test_lp_new(void **state) {
@@ -88,6 +90,38 @@ static void test_is_feasible(void **state) {
     lp_free(lp);
 }
 
+static void test_is_feasible_geq(void **state) {
+    int feasible[] = {1, 0, 1, 1, 0, 0};
+    int not_feasible[] = {0, 0, 1, 0, 0, 1};
+    LinearProgram* lp = new_lp_from_file(TEST_FILE_3);
+
+    assert_true(is_feasible(feasible, lp));
+    assert_false(is_feasible(not_feasible, lp));
+    lp_free(lp);
+}
+
+static void test_is_feasible_eq(void **state) {
+    int feasible[] = {1, 0, 1, 1, 0, 0};
+    int not_feasible[] = {0, 0, 1, 0, 0, 1};
+    LinearProgram* lp = new_lp_from_file(TEST_FILE_4);
+
+    assert_true(is_feasible(feasible, lp));
+    assert_false(is_feasible(not_feasible, lp));
+    lp_free(lp);
+}
+
+static void test_is_feasible_mixed(void **state) {
+    int feasible[] = {1, 0, 1, 1, 0, 0};
+    int not_feasible[] = {0, 0, 1, 0, 0, 1};
+    int not_feasible_zeros[] = {0, 0, 0, 0, 0, 0};
+    LinearProgram* lp = new_lp_from_file(TEST_FILE_4);
+
+    assert_true(is_feasible(feasible, lp));
+    assert_false(is_feasible(not_feasible, lp));
+    assert_false(is_feasible(not_feasible_zeros, lp));
+    lp_free(lp);
+}
+
 int main(void) {
     const UnitTest tests[] = {
         unit_test(test_lp_new),
@@ -95,8 +129,12 @@ int main(void) {
         unit_test(test_parse_row),
         unit_test(test_parse_row_fail),
         unit_test(test_next_configuration),
-        unit_test(test_is_feasible)
+        unit_test(test_is_feasible),
+        unit_test(test_is_feasible_geq),
+        unit_test(test_is_feasible_eq),
+        unit_test(test_is_feasible_mixed)
     };
+
     return run_tests(tests);
 }
 

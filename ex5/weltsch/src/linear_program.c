@@ -19,19 +19,37 @@
  */
 enum parser_state {READ_ROWS, READ_COLS, READ_CONSTRAINTS};
 
+/* describes the "format" of a constraint:
+ * <= -> LEQ
+ * = -> EQ
+ * >= -> GEQ
+ */
+enum constraint_type {LEQ, EQ, GEQ};
+
 struct linear_program {
     int rows;
     int cols;
     num_t** matrix;
     num_t* vector;
+    int* constraint_types;
 };
 
 /* FIXME too simple, are there any other properties to check? */
 bool lp_is_valid(LinearProgram* lp) {
-    return lp->cols &&
+    if (NULL == lp) {
+        return false;
+    }
+
+    if (lp->rows <= 0 || lp->cols <= 0) {
+        return false;
+    }
+
+    return lp &&
+        lp->cols &&
         lp->rows &&
         lp->matrix &&
-        lp->vector;
+        lp->vector &&
+        lp->constraint_types;
 }
 
 LinearProgram* lp_new(int rows, int cols) {
@@ -48,9 +66,11 @@ LinearProgram* lp_new(int rows, int cols) {
     }
 
     num_t* vector = allocate(rows, sizeof(*vector));
+    int* constraint_types = allocate(rows, sizeof(*constraint_types));
 
     lp->matrix = matrix;
     lp->vector = vector;
+    lp->constraint_types = constraint_types;
 
     assert(lp_is_valid(lp));
     return lp;
@@ -62,6 +82,37 @@ char* skip_spaces(char* s) {
     }
 
     return s;
+}
+
+char* parse_type(char* s, int row, LinearProgram* lp) {
+    s = skip_spaces(s);
+    if (!*s) {
+        return NULL;
+    }
+    if (*s == '<') {
+        if (*(s+1) != '=') {
+            return NULL;
+        }
+        lp->constraint_types[row] = LEQ;
+        s+=2;
+        return s;
+    }
+
+    if (*s == '>') {
+        if (*(s+1) != '=') {
+            return NULL;
+        }
+        lp->constraint_types[row] = GEQ;
+        s+=2;
+        return s;
+    }
+
+    if (*s == '=') {
+        lp->constraint_types[row] = EQ;
+        s++;
+        return s;
+    }
+    return NULL;
 }
 
 /* parses a line of the file
@@ -84,12 +135,12 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
         s = end_ptr;
     }
 
-    s = skip_spaces(s);
-    if (*s == '\0' || *s != '<' || *(s+1) != '=') {
+
+    s = parse_type(s, row, lp);
+
+    if (NULL == s) {
         return false;
     }
-    s+=2;
-
 
     long num = strtol(s, &end_ptr, 10);
     if (!is_num_valid(num, s, end_ptr)) {
@@ -110,6 +161,7 @@ void lp_free(LinearProgram* lp) {
 
     deallocate(lp->matrix);
     deallocate(lp->vector);
+    deallocate(lp->constraint_types);
     deallocate(lp);
 }
 
@@ -226,7 +278,11 @@ bool is_feasible(num_t* configuration, LinearProgram* lp) {
             sum += configuration[j] * lp->matrix[i][j];
         }
 
-        if (lp->vector[i] < sum) {
+        if (lp->constraint_types[i] == LEQ && lp->vector[i] < sum) {
+            return false;
+        } else if (lp->constraint_types[i] == GEQ && lp->vector[i] > sum) {
+            return false;
+        }else if (lp->constraint_types[i] == EQ && lp->vector[i] != sum) {
             return false;
         }
     }
