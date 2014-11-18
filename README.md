@@ -1,3 +1,6 @@
+# **IMPORTANT:**
+### This Friday the lecture starts already at 12:00 s.t. and will go until 12:50!
+
 appfs
 =====
 
