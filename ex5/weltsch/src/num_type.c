@@ -11,7 +11,7 @@ bool is_num_valid(num_t num, char* num_str, char* end_ptr) {
 }
 
 void print_num(num_t num) {
-    printf("%lf ", num);
+    printf("%.0lf ", num);
 }
 
 #else

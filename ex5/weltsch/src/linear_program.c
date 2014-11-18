@@ -19,8 +19,8 @@ enum parser_state {READ_ROWS, READ_COLS, READ_CONSTRAINTS};
 struct linear_program {
     int rows;
     int cols;
-    int** matrix;
-    int* vector;
+    num_t** matrix;
+    num_t* vector;
 };
 
 /* FIXME too simple, are there any other properties to check? */
@@ -36,7 +36,7 @@ LinearProgram* lp_new(int rows, int cols) {
     lp->rows = rows;
     lp->cols = cols;
 
-    int** matrix = allocate(rows, sizeof(*matrix));
+    num_t** matrix = allocate(rows, sizeof(*matrix));
 
     int i;
     // initialize every row with 0s
@@ -44,7 +44,7 @@ LinearProgram* lp_new(int rows, int cols) {
         matrix[i] = allocate(cols, sizeof(*matrix[i]));
     }
 
-    int* vector = allocate(rows, sizeof(*vector));
+    num_t* vector = allocate(rows, sizeof(*vector));
 
     lp->matrix = matrix;
     lp->vector = vector;
@@ -77,7 +77,7 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
             return false;
         }
 
-        lp->matrix[row][i] = (int) num;
+        lp->matrix[row][i] = (num_t) num;
         s = end_ptr;
     }
 
@@ -191,17 +191,17 @@ LinearProgram *new_lp_from_file(const char* filename) {
 }
 
 /* print a solution vector */
-void __print_config(int* configuration, int len) {
+void __print_config(num_t* configuration, int len) {
     assert(0 < len);
     int j;
     for (j = 0; j < len; j++) {
-        printf("%d ", configuration[j]);
+        print_num(configuration[j]);
     }
     printf("\n");
 }
 
 /* return the lexicographically next 0-1 vector */
-void next_configuration(int* configuration, int len) {
+void next_configuration(num_t* configuration, int len) {
     assert(0 < len);
     int i;
     for (i = 0; i < len; i++) {
@@ -215,10 +215,10 @@ void next_configuration(int* configuration, int len) {
 }
 
 /* check if a vector is a feasible solution to the lp */
-bool is_feasible(int* configuration, LinearProgram* lp) {
+bool is_feasible(num_t* configuration, LinearProgram* lp) {
     int i, j;
     for (i = 0; i < lp->rows; i++) {
-        int sum = 0;
+        num_t sum = 0;
         for (j = 0; j < lp->cols; j++) {
             sum += configuration[j] * lp->matrix[i][j];
         }
@@ -233,19 +233,21 @@ bool is_feasible(int* configuration, LinearProgram* lp) {
 void print_matrix(LinearProgram* lp) {
     printf("nvars: %d\n", lp->cols);
     printf("nconss: %d\n", lp->rows);
+
     int i, j;
     for (i = 0; i < lp->rows; i++) {
         for (j = 0; j < lp->cols; j++) {
-            printf("%d ", lp->matrix[i][j]);
+            print_num(lp->matrix[i][j]);
         }
         printf("<= ");
-        printf("%d\n", lp->vector[i]);
+        print_num(lp->vector[i]);
+        printf("\n");
     }
 }
 
 /* print all 0-1 solutions to the lp into the outstream */
 void print_bin_solutions_lp(LinearProgram* lp) {
-    int* configuration = allocate(lp->cols, sizeof(*configuration));
+    num_t* configuration = allocate(lp->cols, sizeof(*configuration));
     long solutions = 1UL << lp->cols;
     int feasible_solutions = 0;
 
