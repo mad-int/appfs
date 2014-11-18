@@ -1,8 +1,8 @@
 BIN = ex4
 CC = gcc
 CFLAGS = -Wall -Wextra -O3 -std=c99
-BIN_SRC = src/allocate.c src/ex4_main.c src/linear_program.c
-TEST_SRC = src/allocate.c tests/test_linear_program.c
+BIN_SRC = src/allocate.c src/ex4_main.c src/linear_program.c src/num_type.c
+TEST_SRC = src/allocate.c tests/test_linear_program.c src/num_type.c
 TEST_OUT = test_linear_program
 LFLAGS = -lcmocka
 

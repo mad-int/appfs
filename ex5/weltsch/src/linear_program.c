@@ -7,27 +7,9 @@
 
 #include "allocate.h"
 #include "linear_program.h"
+#include "num_type.h"
 
 #define MAX_LINE_LEN   512  // Maximum input line length
-
-#ifdef USE_DOUBLE
-
-typedef double num_t;
-num_t parse_num(char* num_str, char** end_ptr) {
-    return strtod(num_str, end_ptr);
-}
-
-bool is_num_valid(num_t num, char* num_str, char* end_str) {
-}
-
-#else
-
-typedef int num_t;
-num_t parse_num(char* num_str, char** end_ptr) {
-    return strtol(num_str, end_ptr, 10);
-}
-
-#endif
 
 /* the file parser can have 3 different states, reading #rows, #cols, or
  * parsing a constraint
@@ -77,19 +59,6 @@ char* skip_spaces(char* s) {
     }
 
     return s;
-}
-
-bool is_num_valid(long num, char* s, char* end_ptr) {
-    if (num >= INT_MAX || num <= INT_MIN) {
-        fprintf(stderr, "number %ld is to big for an int\n", num);
-        return false;
-    }
-
-    if (s == end_ptr) {
-        fprintf(stderr, "not a valid integer %s\n", s);
-        return false;
-    }
-    return true;
 }
 
 /* parses a line of the file
