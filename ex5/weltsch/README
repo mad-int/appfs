@@ -1,0 +1,8 @@
+Compilation:
+'make all' compiles the program, usage is ./ex4 <filename>
+
+Testing:
+You need to have cmocka installed to run the tests, see http://cmocka.org/ for
+details.
+'make tests' runs a mini test_suite for linear_program.c
+
