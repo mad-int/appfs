@@ -14,4 +14,4 @@ test:
 	(cd tests; ./$(TEST_OUT))
 
 use_double:
-	$(CC) $(LFLAGS) $(CFLAGS) -DUSE_DOUBLE -o $(BIN)
+	$(CC) $(CFLAGS) -DUSE_DOUBLE $(BIN_SRC) -o $(BIN)
