@@ -3,7 +3,7 @@
 # compile the different codes (Makefiles are assumed to be present)
 
 ex="ex5"
-students=(inken.gamrath simon steger weltsch lang buerschaper schrezenmaier)
+students=(inken.gamrath simon steger weltsch lang buerschaper schrezenmaier iupinov)
 
 home=`pwd`
 
