@@ -2,10 +2,20 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <time.h>
 #include "linear_program.h"
 #include "allocate.h"
 
 #define MAX_LINE_LEN   512  // Maximum input line length
+#define EPS 1e-10
+
+#ifdef DOUBLE
+#define NUMBER double
+#define NUMBER_FORMAT "%lf"
+#else
+#define NUMBER int
+#define NUMBER_FORMAT "%d"
+#endif
 
 /* represents a linear program Ax<=b */
 struct linear_program
@@ -13,15 +23,15 @@ struct linear_program
    int var; /* the number of variables */
    int constr; /* the number of set constraints */
    int max_constr;
-   int** matrix; /* the matrix A */
-   int* rhs; /* the right hand side vector b */
+   NUMBER** matrix; /* the matrix A */
+   NUMBER* rhs; /* the right hand side vector b */
 };
 
 enum comp_sign
 {
-   LEQ,
-   GEQ,
-   EQ
+   LEQ, /* <= */
+   GEQ, /* >= */
+   EQ   /* == */
 };
 
 LinearProgram* new_lp(int var, int constr)
@@ -43,13 +53,12 @@ LinearProgram* new_lp(int var, int constr)
    return lp;
 }
 
-void add_constraint_lp(LinearProgram* lp, int* row, enum comp_sign sign, int rhs)
+void add_constraint_lp(LinearProgram* lp, NUMBER* row, enum comp_sign sign, NUMBER rhs)
 {
    assert(lp);
    assert(lp->constr + 2 < lp->max_constr);
    assert(row);
-   assert(0 <= sign);
-   assert(sign < 3);
+   assert(0 <= sign && sign < 3);
    
    int i;
    switch(sign)
@@ -84,16 +93,32 @@ void print_lp(LinearProgram* lp)
    assert(lp);
    
    int i, j;
+   char s[MAX_LINE_LEN];
    for(i = 0; i < lp->constr; ++i)
    {
       for(j = 0; j < lp->var; ++j)
-         printf("%i ", lp->matrix[i][j]);
-      printf("<= %i\n", lp->rhs[i]);
+      {
+         sprintf(s, "%s ", NUMBER_FORMAT);
+         printf(s, lp->matrix[i][j]);
+      }
+      sprintf(s, "<= %s\n", NUMBER_FORMAT);
+      printf(s, lp->rhs[i]);
    }
+}
+
+void parse_error(const char* file_name, int line, const char* message)
+{
+   assert(file_name);
+   assert(message);
+   assert(line >= 0);
+   
+   fprintf(stderr, "Parsing error in %s (line %d): %s\n", file_name, line, message);
+   exit(EXIT_FAILURE);
 }
 
 LinearProgram* read_from_file_lp(const char* file_name)
 {
+   
    assert(file_name);
    assert(0 < strlen(file_name));
    
@@ -103,11 +128,13 @@ LinearProgram* read_from_file_lp(const char* file_name)
       READ_CONSTR,
       READ_MATRIX
    };
-
+   
    FILE* fp;
    char  buf[MAX_LINE_LEN];
    char* s;
    int lines = 0;
+   
+   int added_rows = 0;
    
    enum parser_state state = READ_VAR;
    
@@ -134,30 +161,57 @@ LinearProgram* read_from_file_lp(const char* file_name)
        */
       if (!*s)  /* <=> (*s == '\0') */
          continue;
-
+      
+      int i = 0;
+      char* ptr;
+      ptr = strtok(s, " ");
+      
       switch(state)
       {
          case READ_VAR:
-            var = atoi(s);
+            while(ptr != NULL)
+            {
+               if(i > 0)
+                  parse_error(file_name, lines, "too many entries in line");
+               char ending[MAX_LINE_LEN];
+               if(1 != sscanf(ptr, "%d%s", &var, &ending))
+                  parse_error(file_name, lines, "wrong format for the number of variables");
+               ptr = strtok(NULL, " ");
+               ++i;
+            }
             state = READ_CONSTR;
             break;
          case READ_CONSTR:
-            constr = atoi(s);
-            lp = new_lp(var, constr);
+            while(ptr != NULL)
+            {
+               if(i > 0)
+                  parse_error(file_name, lines, "too many entries in line");
+               char ending[MAX_LINE_LEN];
+               if(1 != sscanf(s, "%d%s", &constr, &ending))
+                  parse_error(file_name, lines, "wrong format for the numbe of constraints");
+               lp = new_lp(var, constr);
+               ptr = strtok(NULL, " ");
+               ++i;
+            }
             state = READ_MATRIX;
             break;
          case READ_MATRIX:
          {
-            int row[constr];
+            if(added_rows >= constr)
+               parse_error(file_name, lines, "too many matrix rows");
+            NUMBER row[var];
             enum comp_sign sign;
-            int rhs;
-            char *ptr;
-            ptr = strtok(s, " ");
-            int i = 0;
+            NUMBER rhs;
             while(ptr != NULL)
             {
                if(i < var)
-                  row[i] = atoi(ptr);
+               {
+                  char ending[MAX_LINE_LEN];
+                  char argument[MAX_LINE_LEN];
+                  sprintf(argument, "%s%s", NUMBER_FORMAT, "%s");
+                  if(1 != sscanf(ptr, argument, &row[i], &ending))
+                     parse_error(file_name, lines, "wrong format for a matrix entry");
+               }
                else if(i == var)
                {
                   if(0 == strcmp(ptr, "<="))
@@ -166,13 +220,24 @@ LinearProgram* read_from_file_lp(const char* file_name)
                      sign = GEQ;
                   else if(0 == strcmp(ptr, "=="))
                      sign = EQ;
+                  else
+                     parse_error(file_name, lines, "no valid comparison sign");
                }
                else if(i == var + 1)
-                  rhs = atoi(ptr);
+               {
+                  char ending[MAX_LINE_LEN];
+                  char argument[MAX_LINE_LEN];
+                  sprintf(argument, "%s%s", NUMBER_FORMAT, "%s");
+                  if(1 != sscanf(ptr, argument, &rhs, &ending))
+                     parse_error(file_name, lines, "wrong format for the rhs");
+               }
+               else
+                  parse_error(file_name, lines, "too many entries in line");
                ptr = strtok(NULL, " ");
                ++i;
             }
             add_constraint_lp(lp, row, sign, rhs);
+            ++added_rows;
          }
       }
          
@@ -182,6 +247,9 @@ LinearProgram* read_from_file_lp(const char* file_name)
    return lp;
 }
 
+/* Enumerates all feasible solutions of the given LP and writes them to the given file.
+   For faster evaluation gray codes are used. This might lead to numerical problems
+   when floating point arithmetic is used.*/
 void print_feasible_binary_lp(LinearProgram* lp, char* file_name)
 {
    assert(lp);
@@ -194,9 +262,12 @@ void print_feasible_binary_lp(LinearProgram* lp, char* file_name)
       fprintf(stderr, "Can't open file %s\n", file_name);
    }
    
+   clock_t t1, t2;
+   t1 = clock();
+   
    long x = 0l;
    long x_count = 0l;
-   int eval[lp->constr];
+   NUMBER eval[lp->constr];
    int i;
    for(i=0; i < lp->constr; ++i)
       eval[i] = 0;
@@ -207,7 +278,7 @@ void print_feasible_binary_lp(LinearProgram* lp, char* file_name)
       int feasible = 1;
       for(i = 0; i < lp->constr; ++i)
       {
-         if(eval[i] > lp->rhs[i])
+         if(eval[i] > lp->rhs[i] + EPS)
          {
             feasible = 0;
             break;
@@ -246,6 +317,9 @@ void print_feasible_binary_lp(LinearProgram* lp, char* file_name)
       for(i = 0; i < lp->constr; ++i)
          eval[i] += sign * lp->matrix[i][changed_var];
    }
+   t2 = clock();
+   double time = ((double)t2 - (double)t1) / CLOCKS_PER_SEC;
    fclose(output);
    printf("Printed %i solutions to file %s\n", solutions, file_name);
+   printf("Time for enumeration: %f seconds\n", time);
 }
