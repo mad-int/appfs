@@ -1,0 +1,7 @@
+# too many arguments for number of columns
+3 #rows
+3#cols
+1 2 3 <= 3
+1 2 3 <= 2
+-4 3 -5 <= 5
+1 2 3 <= 3
