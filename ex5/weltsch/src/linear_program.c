@@ -4,57 +4,63 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "allocate.h"
 #include "linear_program.h"
+#include "num_type.h"
 
 #define MAX_LINE_LEN   512  // Maximum input line length
 
-#ifdef USE_DOUBLE
-
-typedef double num_t;
-num_t parse_num(char* num_str, char** end_ptr) {
-    return strtod(num_str, end_ptr);
-}
-
-bool is_num_valid(num_t num, char* num_str, char* end_str) {
-}
-
-#else
-
-typedef int num_t;
-num_t parse_num(char* num_str, char** end_ptr) {
-    return strtol(num_str, end_ptr, 10);
-}
-
-#endif
+#define GET_SEC(a, b) ((b - a) / (double)CLOCKS_PER_SEC)
 
 /* the file parser can have 3 different states, reading #rows, #cols, or
  * parsing a constraint
  */
 enum parser_state {READ_ROWS, READ_COLS, READ_CONSTRAINTS};
 
+/* describes the "format" of a constraint:
+ * <= -> LEQ
+ * = -> EQ
+ * >= -> GEQ
+ */
+enum constraint_type {LEQ, EQ, GEQ};
+
 struct linear_program {
     int rows;
     int cols;
-    int** matrix;
-    int* vector;
+    num_t** matrix;
+    num_t* vector;
+    int* constraint_types;
 };
 
 /* FIXME too simple, are there any other properties to check? */
 bool lp_is_valid(LinearProgram* lp) {
-    return lp->cols &&
+    if (NULL == lp) {
+        return false;
+    }
+
+    if (lp->rows <= 0 || lp->cols <= 0) {
+        return false;
+    }
+
+    return lp &&
+        lp->cols &&
         lp->rows &&
         lp->matrix &&
-        lp->vector;
+        lp->vector &&
+        lp->constraint_types;
 }
 
 LinearProgram* lp_new(int rows, int cols) {
+    assert(rows > 0);
+    assert(cols > 0);
+
     LinearProgram* lp = allocate(1, sizeof(*lp));
     lp->rows = rows;
     lp->cols = cols;
 
-    int** matrix = allocate(rows, sizeof(*matrix));
+    num_t** matrix = allocate(rows, sizeof(*matrix));
 
     int i;
     // initialize every row with 0s
@@ -62,71 +68,15 @@ LinearProgram* lp_new(int rows, int cols) {
         matrix[i] = allocate(cols, sizeof(*matrix[i]));
     }
 
-    int* vector = allocate(rows, sizeof(*vector));
+    num_t* vector = allocate(rows, sizeof(*vector));
+    int* constraint_types = allocate(rows, sizeof(*constraint_types));
 
     lp->matrix = matrix;
     lp->vector = vector;
+    lp->constraint_types = constraint_types;
 
     assert(lp_is_valid(lp));
     return lp;
-}
-
-char* skip_spaces(char* s) {
-    while(isspace(*s)) {
-        s++;
-    }
-
-    return s;
-}
-
-bool is_num_valid(long num, char* s, char* end_ptr) {
-    if (num >= INT_MAX || num <= INT_MIN) {
-        fprintf(stderr, "number %ld is to big for an int\n", num);
-        return false;
-    }
-
-    if (s == end_ptr) {
-        fprintf(stderr, "not a valid integer %s\n", s);
-        return false;
-    }
-    return true;
-}
-
-/* parses a line of the file
- * tries to set the corresponding row in the matrix
- * returns false on error
- */
-bool parse_row(char* s, int row, LinearProgram* lp) {
-    assert(row < lp->rows);
-
-    int i;
-    char* end_ptr;
-    for (i = 0; i < lp->cols; i++) {
-        long num = strtol(s, &end_ptr, 10);
-
-        if (!is_num_valid(num, s, end_ptr)) {
-            return false;
-        }
-
-        lp->matrix[row][i] = (int) num;
-        s = end_ptr;
-    }
-
-    s = skip_spaces(s);
-    if (*s == '\0' || *s != '<' || *(s+1) != '=') {
-        return false;
-    }
-    s+=2;
-
-
-    long num = strtol(s, &end_ptr, 10);
-    if (!is_num_valid(num, s, end_ptr)) {
-        return false;
-    }
-    s = end_ptr;
-
-    lp->vector[row] = num;
-    return true;
 }
 
 void lp_free(LinearProgram* lp) {
@@ -138,7 +88,96 @@ void lp_free(LinearProgram* lp) {
 
     deallocate(lp->matrix);
     deallocate(lp->vector);
+    deallocate(lp->constraint_types);
     deallocate(lp);
+}
+
+char* skip_spaces(char* s) {
+    while(isspace(*s)) {
+        s++;
+    }
+
+    return s;
+}
+
+char* parse_type(char* s, int row, LinearProgram* lp) {
+    s = skip_spaces(s);
+    if (!*s) {
+        return NULL;
+    }
+    if (*s == '<') {
+        if (*(s+1) != '=') {
+            return NULL;
+        }
+        lp->constraint_types[row] = LEQ;
+        s+=2;
+        return s;
+    }
+
+    if (*s == '>') {
+        if (*(s+1) != '=') {
+            return NULL;
+        }
+        lp->constraint_types[row] = GEQ;
+        s+=2;
+        return s;
+    }
+
+    if (*s == '=') {
+        lp->constraint_types[row] = EQ;
+        s++;
+        return s;
+    }
+
+    fprintf(stderr, "invalid constraint\n");
+    return NULL;
+}
+
+/* parses a line of the file
+ * tries to set the corresponding row in the matrix
+ * returns false on error
+ */
+bool parse_row(char* s, int row, LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    assert(row >= 0);
+    assert(row < lp->rows);
+
+    int i;
+    char* end_ptr;
+    for (i = 0; i < lp->cols; i++) {
+        long num = strtol(s, &end_ptr, 10);
+
+        if (!is_num_valid(num, s, end_ptr)) {
+            return false;
+        }
+
+        lp->matrix[row][i] = (num_t) num;
+        s = end_ptr;
+    }
+
+
+    s = parse_type(s, row, lp);
+
+    if (NULL == s) {
+        return false;
+    }
+
+    long num = strtol(s, &end_ptr, 10);
+    if (!is_num_valid(num, s, end_ptr)) {
+        return false;
+    }
+    s = end_ptr;
+
+    s = skip_spaces(s);
+
+    if ('\0' != *s) {
+        return false;
+    }
+
+    lp->vector[row] = num;
+
+    assert(lp_is_valid(lp));
+    return true;
 }
 
 // taken from ex4_readline.c
@@ -149,6 +188,7 @@ LinearProgram *new_lp_from_file(const char* filename) {
 
     int rows = 0;
     int cols;
+    char* end_ptr = NULL;
     LinearProgram* lp = NULL;
 
     /* counts the constraint that were read from file
@@ -192,19 +232,37 @@ LinearProgram *new_lp_from_file(const char* filename) {
         /* line is nonempty, so try to parse data
          */
         if (parser_state == READ_COLS) {
-            cols = atoi(s);
+            cols = (int) strtol(s, &end_ptr, 10);
+
+            if (cols <= 0) {
+                fprintf(stderr, "please specify a positive number of cols.\n");
+                goto read_error;
+            }
+
             parser_state = READ_ROWS;
         } else if (parser_state == READ_ROWS) {
-            /* FIXME don't use atoi */
-            rows = atoi(s);
+            rows = (int) strtol(s, &end_ptr, 10);
+
+            if (rows <= 0) {
+                fprintf(stderr, "please specify a positive number of rows.\n");
+                goto read_error;
+            }
+
             lp = lp_new(rows, cols);
             parser_state = READ_CONSTRAINTS;
         } else {
             /* stop if a row does not match the format */
+            if (constraints >= rows) {
+                lp_free(lp);
+                fprintf(stderr, "too many constraints");
+                goto read_error;
+            }
+
             bool valid_format = parse_row(s, constraints, lp);
+
             if (!valid_format) {
-                fprintf(stderr, "line %d does not match the required format\n", lines);
-                break;
+                lp_free(lp);
+                goto read_error;
             }
             constraints++;
         }
@@ -219,21 +277,29 @@ LinearProgram *new_lp_from_file(const char* filename) {
 
     printf("%d lines\n", lines);
     return lp;
+
+read_error:
+    printf("error in line %d\n", lines);
+    fclose(fp);
+    return NULL;
 }
 
 /* print a solution vector */
-void __print_config(int* configuration, int len) {
+void __print_config(num_t* configuration, int len) {
     assert(0 < len);
+
     int j;
     for (j = 0; j < len; j++) {
-        printf("%d ", configuration[j]);
+        print_num(configuration[j]);
     }
+
     printf("\n");
 }
 
 /* return the lexicographically next 0-1 vector */
-void next_configuration(int* configuration, int len) {
+void next_configuration(num_t* configuration, int len) {
     assert(0 < len);
+
     int i;
     for (i = 0; i < len; i++) {
         if (configuration[i]) {
@@ -245,52 +311,98 @@ void next_configuration(int* configuration, int len) {
     }
 }
 
+bool __is_feasible_sum(num_t sum, int row, LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    assert(row >= 0);
+    assert(row < lp->rows);
+
+    if (lp->constraint_types[row] == LEQ && lp->vector[row] < sum) {
+        return false;
+    } else if (lp->constraint_types[row] == GEQ && lp->vector[row] > sum) {
+        return false;
+    } else if (lp->constraint_types[row] == EQ && lp->vector[row] != sum) {
+        return false;
+    }
+    return true;
+}
+
 /* check if a vector is a feasible solution to the lp */
-bool is_feasible(int* configuration, LinearProgram* lp) {
+bool is_feasible(num_t* configuration, LinearProgram* lp) {
     int i, j;
     for (i = 0; i < lp->rows; i++) {
-        int sum = 0;
+        num_t sum = 0;
         for (j = 0; j < lp->cols; j++) {
             sum += configuration[j] * lp->matrix[i][j];
         }
 
-        if (lp->vector[i] < sum) {
+        if (!__is_feasible_sum(sum, i, lp)) {
             return false;
         }
     }
     return true;
 }
 
+void __print_constraint_type(int row, LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    assert(row >= 0);
+    assert(row < lp->rows);
+
+    if (lp->constraint_types[row] == LEQ) {
+        printf("<= ");
+    } else if (lp->constraint_types[row] == GEQ) {
+        printf(">= ");
+    } else if (lp->constraint_types[row] == EQ) {
+        printf("= ");
+    } else {
+        /* should never happen */
+        printf("\nassigned unknown constraint type, fatal error\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
 void print_matrix(LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+
     printf("nvars: %d\n", lp->cols);
     printf("nconss: %d\n", lp->rows);
+
     int i, j;
     for (i = 0; i < lp->rows; i++) {
         for (j = 0; j < lp->cols; j++) {
-            printf("%d ", lp->matrix[i][j]);
+            print_num(lp->matrix[i][j]);
         }
-        printf("<= ");
-        printf("%d\n", lp->vector[i]);
+
+        __print_constraint_type(i, lp);
+
+        print_num(lp->vector[i]);
+        printf("\n");
     }
 }
 
 /* print all 0-1 solutions to the lp into the outstream */
 void print_bin_solutions_lp(LinearProgram* lp) {
-    int* configuration = allocate(lp->cols, sizeof(*configuration));
-    long solutions = 1UL << lp->cols;
-    int feasible_solutions = 0;
+    num_t* configuration = allocate(lp->cols, sizeof(*configuration));
+    unsigned long count = 1UL << lp->cols;
+    unsigned int feasible_solutions = 0;
 
     print_matrix(lp);
     printf("\n");
 
-    int i;
-    for (i = 0; i < solutions; i++) {
+    clock_t start = clock();
+
+    unsigned int i;
+    for (i = 0; i < count; i++) {
         if (is_feasible(configuration, lp)) {
             __print_config(configuration, lp->cols);
             feasible_solutions++;
         }
         next_configuration(configuration, lp->cols);
     }
+
+    double elapsed = GET_SEC(start, clock());
+    printf("Checked %lu vectors in %.3f s = %.3f kvecs/s\n",
+            count, elapsed, count / elapsed / 1000.0);
+
     deallocate(configuration);
-    printf("found %d feasible solutions\n", feasible_solutions);
+    printf("found %u feasible solutions\n", feasible_solutions);
 }
