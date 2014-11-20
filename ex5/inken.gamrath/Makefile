@@ -38,7 +38,8 @@ MAINNAME	=	ex4
 CMAINOBJ	=	allocate.o \
 			ex4.o \
 			probdata.o \
-			reader.o
+			reader.o \
+			template.o
 
 MAINOBJFILES	=	$(addprefix $(OBJDIR)/,$(CMAINOBJ))
 
