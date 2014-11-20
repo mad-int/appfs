@@ -33,6 +33,6 @@ int is_Solution(problem , int* );
 void set_elem(problem, int, int, type);
 type* get_elem(problem, int, int);
 void print_problem(problem);
-void find_solutions(problem);
+int find_solutions(problem);
 
 #endif /* defined(__ex4__instance__) */

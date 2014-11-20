@@ -12,9 +12,11 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "permute.h"
+#include <time.h>
+#include <assert.h>
 
 #define MAX_BUF 1024
-
+#define GET_SEC(a, b)  ((b - a) / (double)CLOCKS_PER_SEC) 
 
 problem init_problem(int rows, int columns){
     problem out;
@@ -134,10 +136,52 @@ void print_problem(problem p){
     
     
 }
+int bip_enumerate(const problem bip, bool with_output)
+{
+        assert(is_initialized(bip));
+        clock_t start = clock();
+        int     solus = 0;
+        int     count = 0;
+        for(unsigned long long bitvec = 0; bitvec < (1uL << bip.columns); bitvec++)
+           {
+              unsigned long long mask = 1;  // long long because long is 32 bit on 32 bit computers
+                   int    x[bip.columns];
+            
+                assert(sizeof(bitvec) * 8 > bip.columns); //lint !e506
+                  for(int j = 0; j < bip.columns; j++, mask <<= 1)
+                          x[j] = (bitvec & mask) ? 1.0 : 0.0;
+               if (bip.ordin==eq) {
+                   if (is_Solution_eq(bip, x)){
+                       if (with_output)
+                           print_solution(x, bip.columns);
+                       
+                       solus++;
+                   }
+               }else{
+                   if (is_Solution(bip, x)) //lint !e772
+                   {
+                       if (with_output)
+                           print_solution(x, bip.columns);
+                       
+                       solus++;
+                   }
+               }
+               
+                  count++;
+            }
+       assert((unsigned)count == (1u << bip.columns));
+    
+        double elapsed = GET_SEC(start, clock());
+    
+        printf("Checked %d vectors in %.3f s = %.3f kvecs/s\n",
+                    count, elapsed, count / elapsed / 1000.0);
+    
+        return solus;
+     }
 //test all possible solutions on the problem
-void find_solutions(problem inst){
+int find_solutions(problem inst){
     if (!is_initialized(inst)) {
-        return ;
+        return 0;
     }
     if (greatereq==inst.ordin) {
         for (int i=0; i<inst.rows; ++i) {
@@ -148,42 +192,7 @@ void find_solutions(problem inst){
             inst.vector[i]=-inst.vector[i];
         }
     }
-    if (eq == inst.ordin) {
-        goto equal;
-    }
-    for (int i=0; i<inst.columns; ++i) {
-        int test[inst.columns];
-        for (int j=0  ; j< inst.columns; ++j) {
-            if (j<inst.columns-i) {
-                test[j]=0;
-            }else test[j]=1;
-        }
-        if (is_Solution(inst, test)) {
-            print_solution(test,inst.columns);
-        }
-        while (next_permutation(test, inst.columns)) {
-            if (is_Solution(inst, test)) {
-                print_solution(test,inst.columns);
-            }
-        }
-   }
-equal:
-    for (int i=0; i<inst.columns; ++i) {
-        int test[inst.columns];
-        for (int j=0  ; j< inst.columns; ++j) {
-            if (j<inst.columns-i) {
-                test[j]=0;
-            }else test[j]=1;
-        }
-        if (is_Solution_eq(inst, test)) {
-            print_solution(test,inst.columns);
-        }
-        while (next_permutation(test, inst.columns)) {
-            if (is_Solution_eq(inst, test)) {
-                print_solution(test,inst.columns);
-            }
-        }
-    }
     
+    int sols=bip_enumerate(inst, true);
+    return sols;
 }
-
