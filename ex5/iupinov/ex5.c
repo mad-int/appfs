@@ -21,9 +21,14 @@ int main(int argc, char **argv)
 		printf("Could not open the file %s\n", argv[1]);
 		return 1;
 	}
-	struct IneqSystem *system = ReadIneqSystemData(file);
+	struct IneqSystem *system = NULL; 
+	int r = ReadIneqSystemData(file, &system);
 	fclose(file);
-
+	if (r)
+	{				
+		printf("Input data is erroneous.\n");
+		return 1;
+	}
 	clock_t start = clock();
 	struct BinaryVector solution;	
 	int solutionsCount = 0;	
@@ -46,7 +51,7 @@ int main(int argc, char **argv)
 	while (value != max);
 	clock_t end = clock();	
 	printf("Solutions count: %d\n", solutionsCount);
-	printf("Solving took %6.5f seconds.\n", (double)(end - start) / (double)CLOCKS_PER_SEC);
+	printf("Solving took %6.5lf seconds.\n", (double)(end - start) / (double)CLOCKS_PER_SEC);
 
 	DeallocateIneqSystem(system);
 
