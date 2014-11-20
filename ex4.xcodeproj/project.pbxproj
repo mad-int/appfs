@@ -7,7 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		F90E7A971A0F8815002B2CBB /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = F90E7A961A0F8815002B2CBB /* main.c */; };
+		F90E7A971A0F8815002B2CBB /* ex4.c in Sources */ = {isa = PBXBuildFile; fileRef = F90E7A961A0F8815002B2CBB /* ex4.c */; };
+		F90E7A9F1A0F88F7002B2CBB /* instance.c in Sources */ = {isa = PBXBuildFile; fileRef = F90E7A9D1A0F88F7002B2CBB /* instance.c */; };
+		F9ED37B71A10B6FF00FF7081 /* allocate.c in Sources */ = {isa = PBXBuildFile; fileRef = F9ED37B51A10B6FF00FF7081 /* allocate.c */; };
+		F9ED37BA1A10D5AA00FF7081 /* permute.c in Sources */ = {isa = PBXBuildFile; fileRef = F9ED37B81A10D5AA00FF7081 /* permute.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +27,14 @@
 
 /* Begin PBXFileReference section */
 		F90E7A931A0F8815002B2CBB /* ex4 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ex4; sourceTree = BUILT_PRODUCTS_DIR; };
-		F90E7A961A0F8815002B2CBB /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		F90E7A961A0F8815002B2CBB /* ex4.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ex4.c; sourceTree = "<group>"; };
+		F90E7A9D1A0F88F7002B2CBB /* instance.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = instance.c; sourceTree = "<group>"; };
+		F90E7A9E1A0F88F7002B2CBB /* instance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = instance.h; sourceTree = "<group>"; };
+		F9A581181A1CFE240008C55D /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
+		F9ED37B51A10B6FF00FF7081 /* allocate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = allocate.c; sourceTree = "<group>"; };
+		F9ED37B61A10B6FF00FF7081 /* allocate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = allocate.h; sourceTree = "<group>"; };
+		F9ED37B81A10D5AA00FF7081 /* permute.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = permute.c; sourceTree = "<group>"; };
+		F9ED37B91A10D5AA00FF7081 /* permute.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = permute.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,7 +67,14 @@
 		F90E7A951A0F8815002B2CBB /* ex4 */ = {
 			isa = PBXGroup;
 			children = (
-				F90E7A961A0F8815002B2CBB /* main.c */,
+				F90E7A961A0F8815002B2CBB /* ex4.c */,
+				F90E7A9D1A0F88F7002B2CBB /* instance.c */,
+				F90E7A9E1A0F88F7002B2CBB /* instance.h */,
+				F9ED37B51A10B6FF00FF7081 /* allocate.c */,
+				F9ED37B61A10B6FF00FF7081 /* allocate.h */,
+				F9ED37B81A10D5AA00FF7081 /* permute.c */,
+				F9ED37B91A10D5AA00FF7081 /* permute.h */,
+				F9A581181A1CFE240008C55D /* makefile */,
 			);
 			path = ex4;
 			sourceTree = "<group>";
@@ -118,7 +135,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F90E7A971A0F8815002B2CBB /* main.c in Sources */,
+				F9ED37BA1A10D5AA00FF7081 /* permute.c in Sources */,
+				F90E7A9F1A0F88F7002B2CBB /* instance.c in Sources */,
+				F90E7A971A0F8815002B2CBB /* ex4.c in Sources */,
+				F9ED37B71A10B6FF00FF7081 /* allocate.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -232,6 +252,7 @@
 				F90E7A9C1A0F8815002B2CBB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

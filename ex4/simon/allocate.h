@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-#ifndef _ALLOCATE_H_
- #define _ALLOCATE_H_
-
- /*lint -sem(  allocate, 1n > 0 && 2n > 0, @p) */
- extern void*  allocate(int elems, int size);
- /*lint -sem(  deallocate, custodial(1), 1p) */
- extern void   deallocate(void* p);
-
- #endif /* _ALLOCATE_H_ */
-=======
 /**@file   allocate.h
  * @brief  Wrapper fuer malloc
  * @author Thorsten Koch
@@ -23,4 +12,3 @@ extern void*  allocate(int elems, int size);
 extern void   deallocate(void* p);
 
 #endif /* _ALLOCATE_H_ */
->>>>>>> d0fa9d95fdbbb6fb893a457c577069dee15ee9ad
