@@ -17,12 +17,14 @@
 
 
 //increment a pointer to the next withespace character. return NULL if no such character is present.
-bool is_number( char * point){
+bool is_number( char * point, bool printerror){
     if(NULL == point){
        return false;
     }
     if (atoi(point)==0 && *point!='0') {
-        printf("Unerlaubter char %c ist keine Zahl, \n", *point);
+        if (printerror) {
+            printf("Unerlaubter char %c ist keine Zahl, \n", *point);
+        }
         return false;
     }
     return true;
@@ -115,28 +117,33 @@ type get_number(char*point){
                         while (isspace(*current_num)) {
                             ++current_num;
                         }
-                        if (!is_number(current_num)) {
+                        if (!is_number(current_num, true)) {
                             goto wrong_input;
                         }
                         set_elem(inst, lines-3, i, get_number(current_num));
                         //printf("%d \t", *(get_elem(inst, lines-3, i)));
-                        if (i==inst.columns-1) continue;
+                        if (i==inst.columns-1){
+                            if (NULL==next_number(current_num) || is_number(next_number(current_num),false))  {
+                                goto wrong_input;
+                            }
+                            continue;
+                        }
                         if(NULL==(current_num=next_number(current_num)))goto wrong_input;
                     }
                     
                     if(NULL==(current_num=strpbrk(current_num, "<>="))) goto wrong_input;
                     if (*current_num=='<'&&*(current_num+1)=='=' ) {
-                        if((non_def==inst.ordin || smallereq==inst.ordin) && is_number(current_num+2))inst.ordin=smallereq;
+                        if((non_def==inst.ordin || smallereq==inst.ordin) && is_number(current_num+2,true))inst.ordin=smallereq;
                         else goto wrong_input;
                     }else if (*current_num=='>'&&*(current_num+1)=='=' ){
-                        if((non_def==inst.ordin || greatereq==inst.ordin) && is_number(current_num+2))inst.ordin=2;
+                        if((non_def==inst.ordin || greatereq==inst.ordin) && is_number(current_num+2,true))inst.ordin=2;
                         else goto wrong_input;
                     }else if (*current_num=='=' ){
-                        if((non_def==inst.ordin || eq==inst.ordin )&& is_number(current_num+1))inst.ordin=3;
+                        if((non_def==inst.ordin || eq==inst.ordin )&& is_number(current_num+1,true))inst.ordin=3;
                         else goto wrong_input;
                     }
                     if(NULL==(current_num=next_number(current_num)))goto wrong_input;
-                    if (!is_number(current_num)) goto wrong_input;
+                    if (!is_number(current_num,true)) goto wrong_input;
                     inst.vector[lines-3]=get_number(current_num);
                     //printf(" <= %d \n", inst.vector[lines-3]);
                     current_num=next_number(current_num);
@@ -151,7 +158,8 @@ type get_number(char*point){
      if (lines-2!=inst.rows)goto wrong_input;
      print_problem(inst);
      printf("Die Lösungen des Problems sind: \n");
-     find_solutions(inst);
+     int sols=find_solutions(inst);
+     printf("Es wurden %d Lösungen gefunden.", sols);
      fclose(fp);
      free_problem(inst);
      return lines;
