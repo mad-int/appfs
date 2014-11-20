@@ -1,6 +1,16 @@
+# **IMPORTANT:**
+### This Friday the lecture starts already at 12:00 s.t. and will go until 12:50!
+
 appfs
 =====
 
-Lecture material for "Advanced (practical) Programming for Scientists" at TU Berlin
+Lecture material for "Advanced (practical) Programming for Scientists" at TU Berlin: http://www.zib.de/koch/lectures/ws2014_appfs.php
 
-This repository is also available at GitLab TU Berlin: https://gitlab.tubit.tu-berlin.de/mattjsbb/appfs
+GitLab: https://gitlab.tubit.tu-berlin.de/mattjsbb/appfs
+
+GitHub: https://github.com/mattmilten/appfs
+
+ - It would be nice to have Makefiles for your code to make compiling easier
+ - Use the shared directory `data/` for test instances
+
+#### Please us the Issue/Wiki functionality whenever you encounter a problem during the exercises.
