@@ -33,7 +33,6 @@ struct linear_program {
     num_t* vector;
     int* constraint_types;
 };
-
 /* FIXME too simple, are there any other properties to check? */
 bool lp_is_valid(LinearProgram* lp) {
     if (NULL == lp) {
@@ -53,6 +52,9 @@ bool lp_is_valid(LinearProgram* lp) {
 }
 
 LinearProgram* lp_new(int rows, int cols) {
+    assert(rows > 0);
+    assert(cols > 0);
+
     LinearProgram* lp = allocate(1, sizeof(*lp));
     lp->rows = rows;
     lp->cols = cols;
@@ -74,6 +76,19 @@ LinearProgram* lp_new(int rows, int cols) {
 
     assert(lp_is_valid(lp));
     return lp;
+}
+
+void lp_free(LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    int i;
+    for (i = 0; i < lp->rows; i++) {
+        deallocate(lp->matrix[i]);
+    }
+
+    deallocate(lp->matrix);
+    deallocate(lp->vector);
+    deallocate(lp->constraint_types);
+    deallocate(lp);
 }
 
 char* skip_spaces(char* s) {
@@ -120,7 +135,9 @@ char* parse_type(char* s, int row, LinearProgram* lp) {
  * returns false on error
  */
 bool parse_row(char* s, int row, LinearProgram* lp) {
+    assert(lp_is_valid(lp));
     assert(row < lp->rows);
+    assert(row >= 0);
 
     int i;
     char* end_ptr;
@@ -148,21 +165,16 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
     }
     s = end_ptr;
 
-    lp->vector[row] = num;
-    return true;
-}
+    s = skip_spaces(s);
 
-void lp_free(LinearProgram* lp) {
-    assert(lp_is_valid(lp));
-    int i;
-    for (i = 0; i < lp->rows; i++) {
-        deallocate(lp->matrix[i]);
+    if ('\0' != *s) {
+        return false;
     }
 
-    deallocate(lp->matrix);
-    deallocate(lp->vector);
-    deallocate(lp->constraint_types);
-    deallocate(lp);
+    lp->vector[row] = num;
+
+    assert(lp_is_valid(lp));
+    return true;
 }
 
 // taken from ex4_readline.c
@@ -173,6 +185,7 @@ LinearProgram *new_lp_from_file(const char* filename) {
 
     int rows = 0;
     int cols;
+    char* end_ptr = NULL;
     LinearProgram* lp = NULL;
 
     /* counts the constraint that were read from file
@@ -216,11 +229,10 @@ LinearProgram *new_lp_from_file(const char* filename) {
         /* line is nonempty, so try to parse data
          */
         if (parser_state == READ_COLS) {
-            cols = atoi(s);
+            cols = (int) strtol(s, &end_ptr, 10);
             parser_state = READ_ROWS;
         } else if (parser_state == READ_ROWS) {
-            /* FIXME don't use atoi */
-            rows = atoi(s);
+            rows = (int) strtol(s, &end_ptr, 10);
             lp = lp_new(rows, cols);
             parser_state = READ_CONSTRAINTS;
         } else {
@@ -248,16 +260,19 @@ LinearProgram *new_lp_from_file(const char* filename) {
 /* print a solution vector */
 void __print_config(num_t* configuration, int len) {
     assert(0 < len);
+
     int j;
     for (j = 0; j < len; j++) {
         print_num(configuration[j]);
     }
+
     printf("\n");
 }
 
 /* return the lexicographically next 0-1 vector */
 void next_configuration(num_t* configuration, int len) {
     assert(0 < len);
+
     int i;
     for (i = 0; i < len; i++) {
         if (configuration[i]) {
@@ -269,6 +284,21 @@ void next_configuration(num_t* configuration, int len) {
     }
 }
 
+bool __is_feasible_sum(num_t sum, int row, LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    assert(row >= 0);
+    assert(row < lp->rows);
+
+    if (lp->constraint_types[row] == LEQ && lp->vector[row] < sum) {
+        return false;
+    } else if (lp->constraint_types[row] == GEQ && lp->vector[row] > sum) {
+        return false;
+    } else if (lp->constraint_types[row] == EQ && lp->vector[row] != sum) {
+        return false;
+    }
+    return true;
+}
+
 /* check if a vector is a feasible solution to the lp */
 bool is_feasible(num_t* configuration, LinearProgram* lp) {
     int i, j;
@@ -278,18 +308,34 @@ bool is_feasible(num_t* configuration, LinearProgram* lp) {
             sum += configuration[j] * lp->matrix[i][j];
         }
 
-        if (lp->constraint_types[i] == LEQ && lp->vector[i] < sum) {
-            return false;
-        } else if (lp->constraint_types[i] == GEQ && lp->vector[i] > sum) {
-            return false;
-        }else if (lp->constraint_types[i] == EQ && lp->vector[i] != sum) {
+        if (!__is_feasible_sum(sum, i, lp)) {
             return false;
         }
     }
     return true;
 }
 
+void __print_constraint_type(int row, LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    assert(row >= 0);
+    assert(row < lp->rows);
+
+    if (lp->constraint_types[row] == LEQ) {
+        printf("<= ");
+    } else if (lp->constraint_types[row] == GEQ) {
+        printf(">= ");
+    } else if (lp->constraint_types[row] == EQ) {
+        printf("= ");
+    } else {
+        /* should never happen */
+        printf("\nassigned unknown constraint type, fatal error\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
 void print_matrix(LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+
     printf("nvars: %d\n", lp->cols);
     printf("nconss: %d\n", lp->rows);
 
@@ -298,7 +344,9 @@ void print_matrix(LinearProgram* lp) {
         for (j = 0; j < lp->cols; j++) {
             print_num(lp->matrix[i][j]);
         }
-        printf("<= ");
+
+        __print_constraint_type(i, lp);
+
         print_num(lp->vector[i]);
         printf("\n");
     }
