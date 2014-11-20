@@ -33,6 +33,7 @@ struct linear_program {
     num_t* vector;
     int* constraint_types;
 };
+
 /* FIXME too simple, are there any other properties to check? */
 bool lp_is_valid(LinearProgram* lp) {
     if (NULL == lp) {
@@ -127,6 +128,8 @@ char* parse_type(char* s, int row, LinearProgram* lp) {
         s++;
         return s;
     }
+
+    fprintf(stderr, "invalid constraint\n");
     return NULL;
 }
 
@@ -136,8 +139,8 @@ char* parse_type(char* s, int row, LinearProgram* lp) {
  */
 bool parse_row(char* s, int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
-    assert(row < lp->rows);
     assert(row >= 0);
+    assert(row < lp->rows);
 
     int i;
     char* end_ptr;
@@ -230,17 +233,36 @@ LinearProgram *new_lp_from_file(const char* filename) {
          */
         if (parser_state == READ_COLS) {
             cols = (int) strtol(s, &end_ptr, 10);
+
+            if (cols <= 0) {
+                fprintf(stderr, "please specify a positive number of cols.\n");
+                goto read_error;
+            }
+
             parser_state = READ_ROWS;
         } else if (parser_state == READ_ROWS) {
             rows = (int) strtol(s, &end_ptr, 10);
+
+            if (rows <= 0) {
+                fprintf(stderr, "please specify a positive number of rows.\n");
+                goto read_error;
+            }
+
             lp = lp_new(rows, cols);
             parser_state = READ_CONSTRAINTS;
         } else {
             /* stop if a row does not match the format */
+            if (constraints >= rows) {
+                lp_free(lp);
+                fprintf(stderr, "too many constraints");
+                goto read_error;
+            }
+
             bool valid_format = parse_row(s, constraints, lp);
+
             if (!valid_format) {
-                fprintf(stderr, "line %d does not match the required format\n", lines);
-                break;
+                lp_free(lp);
+                goto read_error;
             }
             constraints++;
         }
@@ -255,6 +277,11 @@ LinearProgram *new_lp_from_file(const char* filename) {
 
     printf("%d lines\n", lines);
     return lp;
+
+read_error:
+    printf("error in line %d\n", lines);
+    fclose(fp);
+    return NULL;
 }
 
 /* print a solution vector */
