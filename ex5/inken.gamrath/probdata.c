@@ -6,7 +6,7 @@
 #include "allocate.h"
 #include "probdata.h"
 
-#define debug
+// #define debug
 
 /* determines whether the matrix data is valid */
 static bool matrix_is_valid(const Matrix* matrix)
@@ -65,7 +65,9 @@ bool matrix_put(Matrix* matrix, TYPE* coefs, TYPE rhs)
    TYPE max = 0.0;
    TYPE min = 0.0;
 #ifdef debug
-   fprintf(stdout, "add column: ");
+   fprintf(stdout, "Add consttraint: ");
+   char* str;
+   str = allocate(MAX_STR_LEN, sizeof(*str));
 #endif
    for (int j = 0; j < matrix->n; j++)
    {
@@ -77,19 +79,14 @@ bool matrix_put(Matrix* matrix, TYPE* coefs, TYPE rhs)
             min += coefs[j];
       }
 #ifdef debug
-#if defined(DOUBLE)
-      fprintf(stdout, "%f ", coefs[j]);
-#elif defined(INT)
-      fprintf(stdout, "%i ", coefs[j]);
-#endif
+      vtostr(str, coefs[j]);
+      fprintf(stdout, "%s ", str);
 #endif
    }
 #ifdef debug
-#if defined(DOUBLE)
-   fprintf(stdout, "<= %f\n", rhs);
-#elif defined(INT)
-   fprintf(stdout, "<= %i\n", rhs);
-#endif
+   vtostr(str, rhs);
+   fprintf(stdout, "<= %s\n", str);
+   deallocate(str);
 #endif
 
    /* constraint is redundant, when maximal activity is smaller or equal to rhight-hand side
@@ -98,7 +95,7 @@ bool matrix_put(Matrix* matrix, TYPE* coefs, TYPE rhs)
    if (max <= rhs)
    {
 #ifdef debug
-      printf("redundant constraint.\n");
+      printf("Constraint is redundant.\n");
 #endif
       matrix->redundant++;
       return true;
@@ -257,6 +254,7 @@ bool solveLP(Matrix* matrix, FILE* fp)
 
    success = false;
    length = pow(2, matrix->n);
+   clock_t start = clock();
    for (long int i = 0; i < length; i++)
    {
 //       p = 1;
@@ -307,6 +305,9 @@ bool solveLP(Matrix* matrix, FILE* fp)
       }
 #endif
    }
+   fprintf(stdout, "Enumeration time: %.2f seconds.\n", GET_SEC(start, clock()));
+
+   deallocate(values);
    assert(matrix_is_valid(matrix));
 
    return success;
