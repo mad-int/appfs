@@ -32,6 +32,9 @@ int main(int argc, char** argv)
       fprintf(stderr, "usage: %s filename", argv[0]);
       return EXIT_FAILURE;
    }
+   if (IS_DOUBLE) {
+	   printf("\nall values considered as doubles...\n\n");
+   }
 	struct linearProgram* ilp = createLPFromFile(argv[1]);
 	// compute feasible vectors from ILP
 	clock_t enumeration_start=clock();

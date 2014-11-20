@@ -6,10 +6,12 @@
 	\param lp the linearProgram which constraint matrix shall be printed
 */
 void printMatrix(const struct linearProgram* lp) {
+	char s[4];
 	for(int i = 0; i < lp->row; ++i) {
 		for(int j = 0; j < lp->col; ++j)
 		{
-			printf("%f ", lp->coeffs[i][j]);
+			sprintf(s, "%s ", NUM_TYPE);
+			printf(s, lp->coeffs[i][j]);
 		}
 		printf("\n");
 	}

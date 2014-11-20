@@ -1,4 +1,5 @@
 #include "ilpParser.h"
+#include "linearProgram.h"
 
 #define BUF_SIZE 512
 #define USAGE "file must consist of: \n#rows #columns constraints, e.g.:\n\n\
@@ -89,7 +90,11 @@ struct linearProgram* createLPFromFile(const char* filename) {
 				exit(EXIT_FAILURE);
 			}
 			char* test = strtok(help_me, "><=");
-			test = strtok(NULL, " ><=");
+			if(NULL == (test = strtok(NULL, " ><="))) {
+				printf("No rhs in line %d.\n", lines);
+				printf(USAGE);
+				exit(EXIT_FAILURE);
+			}
 			if (!validateNumber(test)) {
 				printf("No number on right-hand-side of line %d.\n", lines);
 				exit(EXIT_FAILURE);
@@ -101,6 +106,10 @@ struct linearProgram* createLPFromFile(const char* filename) {
 			}
 			currentConstraint++;
 		}
+	}
+	if (currentConstraint < numOfRows) {
+		printf("Too few rows!\n");
+		exit(EXIT_FAILURE);
 	}
 	if (lines == 0) {
 		printf("The file was empty! Nice try...\n");
@@ -125,6 +134,7 @@ int validateNumber(char* string) {
 	assert(n>=1);
 	char c = string[0];
 	// first char can be number or sign
+	
 	if(!((c >= '0' && c <= '9') || c == '+' || c == '-' || c == '.')) {
 		return 0;
 	}
@@ -149,12 +159,14 @@ int validateNumber(char* string) {
 */
 int fillRow(num* row, int col, char* inputString, char* delimiter) {
 	int i = 0;
+	int asInteger;
+	float asFloat;
 	assert(NULL != inputString);
 	assert(NULL != row);
 	// Seperate each number
 	char* value = strtok(inputString, delimiter);
 	while (NULL != value) {
-		if (i > col) {
+		if (i+1 > col) {
 			printf("Number of columns more than specified in line 1!\n");
 			return -1;
 		}
@@ -163,6 +175,15 @@ int fillRow(num* row, int col, char* inputString, char* delimiter) {
 			return -1;
 		}
 		row[i] = atof(value);
+		asInteger = atoi(value);
+		asFloat = atof(value);
+		
+		// Check 
+		if (((asFloat - asInteger) != 0) && !IS_DOUBLE) {
+			return -1;
+		}
+		
+		
 		i++;
 		// Next number
 		value = strtok(NULL, delimiter);
@@ -180,8 +201,10 @@ int fillRow(num* row, int col, char* inputString, char* delimiter) {
 	
 */
 int parseDecimal(char* s) {
-	int t;
-	if (!(t = atoi(s))) {
+	int t = atoi(s);
+	float test = atof(s);
+	
+	if (!t || ((test - (float)t) != 0)) {
 		fprintf(stderr, "Can't parse dimension %d!\n",mode+1);
 		printf(USAGE);
 		exit(EXIT_FAILURE);

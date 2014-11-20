@@ -2,18 +2,20 @@
 #define _LINEARPROGRAM_H
 
 
-#include "linearProgram.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 #include "allocate.h"
 
-#define DOUBLE
 #if defined DOUBLE
 #define num double
+#define NUM_TYPE "%f"
+#define IS_DOUBLE 1
 #else
 #define num int
+#define NUM_TYPE "%d"
+#define IS_DOUBLE 0
 #endif
 
 //! Some enum for the type of an (in)equality
