@@ -19,7 +19,7 @@ do
 
    for test in ${tests[@]}
    do
-      ex5 $test
+      ./ex5 $test
    done
    mkdir cov/
    # location of compiled code is not known - try some...
