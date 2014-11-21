@@ -6,8 +6,8 @@ SHELL		=	/bin/bash
 
 OPT		=	opt
 
-CC		=	gcc -Wall -Werror
-CXX		=	g++ -Wall -Werror
+CC		=	gcc -Wall -Werror -fprofile-arcs -ftest-coverage
+CXX		=	g++ -Wall -Werror -fprofile-arcs -ftest-coverage
 OBJDIR		=	obj
 BINDIR		=	bin
 SRCDIR		=	.
@@ -38,7 +38,8 @@ MAINNAME	=	ex4
 CMAINOBJ	=	allocate.o \
 			ex4.o \
 			probdata.o \
-			reader.o
+			reader.o \
+			template.o
 
 MAINOBJFILES	=	$(addprefix $(OBJDIR)/,$(CMAINOBJ))
 
@@ -63,6 +64,7 @@ $(OBJDIR)/%.o:	$(SRCDIR)/%.c
 ex4:		$(OBJDIR) $(BINDIR) $(MAINOBJFILES)
 		@echo "-> linking $@"
 		@$(CXX) $(MAKE) $(CFLAGS) -mtune=native -fomit-frame-pointer -m64 $(MAINOBJFILES) -o $(BINDIR)/$(MAINNAME)
+		ln -s $(BINDIR)/$(MAINNAME) ex5
 
 .PHONY: clean
 clean:		$(OBJDIR)
