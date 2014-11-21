@@ -1,6 +1,3 @@
-# **IMPORTANT:**
-### This Friday the lecture starts already at 12:00 s.t. and will go until 12:50!
-
 appfs
 =====
 
@@ -9,6 +6,8 @@ Lecture material for "Advanced (practical) Programming for Scientists" at TU Ber
 GitLab: https://gitlab.tubit.tu-berlin.de/mattjsbb/appfs
 
 GitHub: https://github.com/mattmilten/appfs
+
+How to keep your repo in sync with the main one: https://help.github.com/articles/syncing-a-fork/
 
  - It would be nice to have Makefiles for your code to make compiling easier
  - Use the shared directory `data/` for test instances
