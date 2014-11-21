@@ -10,7 +10,7 @@
 
 #ifdef USE_MSHELL
 #include "mshell.h"
-#endif
+#endif 
 
 /**@brief   Alloziere Speicher.
  * @ingroup Sonstiges
@@ -20,7 +20,7 @@
  *  Es muss mindestens ein Byte Speicher angefordert werden.
  *  Der Speicher ist auf 0 initialisiert, bzw. FALSE wenn es sich um
  *  #Bool Elemente handelt.
- *
+ *  
  *
  *  @param elems Anzahl Elemente
  *  @param size  Groesse eines Elements in Bytes
@@ -29,19 +29,19 @@
  */
 void* allocate(int elems, int size)
 {
-    void* p;
-    
-    assert(elems > 0);
-    assert(size  > 0);
-    
-    if (NULL == (p = calloc((size_t)elems, (size_t)size)))
-    {
-        perror("allocate");
-        exit(EXIT_FAILURE);
-    }
-    assert(p != NULL);
-    
-    return p;
+   void* p;
+
+   assert(elems > 0);
+   assert(size  > 0);
+
+   if (NULL == (p = calloc((size_t)elems, (size_t)size)))
+   {
+      perror("allocate");
+      exit(EXIT_FAILURE);
+   }
+   assert(p != NULL);
+   
+   return p;
 }
 
 /**@brief   Speicher wieder freigeben.
@@ -49,14 +49,16 @@ void* allocate(int elems, int size)
  *
  *  Gibt den Speicher wieder frei. Darf nur mit Speicherbereichen
  *  verwendet werden, die mit #allocate alloziert wurden.
- *
+ * 
  *  @param p Zeiger auf einen Speicherbereich der von #allocate
  *           zur&uuml;ckgeliefert wurde
  */
 void deallocate(void* p)
 {
-    assert(p != NULL);
-    
-    free(p);
+   assert(p != NULL);
+   
+   free(p);
 }
+
+
 
