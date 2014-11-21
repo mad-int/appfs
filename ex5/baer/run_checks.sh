@@ -2,7 +2,7 @@
 
 for file in `ls ../../data/corrupted_* ../../data/error_*`
 do
-    ./ex4 $file 2> /dev/null 1> /dev/null
+    ./ex5 $file 2> /dev/null 1> /dev/null
     RETVAL=$?
 
     if [ $RETVAL -eq 0 ];
