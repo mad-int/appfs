@@ -2,10 +2,14 @@ OBJDIR = obj
 SRCDIR = src
 OBJ = bip.o allocate.o numb.o constraint.o constraintArray.o
 MAINOBJFILES= $(addprefix $(OBJDIR)/, $(OBJ)) 
-CCFLAGS = -I$(OBJDIR) -Wall -Werror
-MAIN = bip
+COVFLAGS= -fprofile-arcs -ftest-coverage
+CCFLAGS = -I$(OBJDIR) -Wall -Werror $(COVFLAGS)
+MAIN = ex5
 
 all: $(MAIN)
+
+cov: CCFLAGS += $(COVFLAGS)
+cov: $(MAIN)
 
 int_coeffs: CCFLAGS += -DINT_COEFFS
 int_coeffs: $(MAIN)
