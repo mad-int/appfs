@@ -6,7 +6,7 @@ home=`pwd`
 
 ex="ex5"
 
-students=(inken.gamrath simon steger weltsch lang buerschaper schrezenmaier)
+students=(inken.gamrath simon steger weltsch lang buerschaper schrezenmaier iupinov)
 
 tests=($home/data/corrupt* $home/data/error* $home/data/test*)
 
