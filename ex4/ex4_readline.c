@@ -6,7 +6,7 @@
  * gcc -O2 -Wall -o ex4_readline ex4_readline.c
  *
  * Using fgets() for input
- */
+ */  
 #include <stdio.h>   // fopen
 #include <stdlib.h>  // EXIT_*
 #include <string.h>  // strpbrk
@@ -28,7 +28,7 @@ int process_file(const char* filename)
    char  buf[MAX_LINE_LEN];
    char* s;
    int   lines = 0;
-
+   
    if (NULL == (fp = fopen(filename, "r")))
    {
       fprintf(stderr, "Can't open file %s\n", filename);
@@ -39,10 +39,10 @@ int process_file(const char* filename)
       char* t = strpbrk(s, "#\n\r");
 
       lines++;
-
+      
       if (NULL != t) /* else line is not terminated or too long */
          *t = '\0';  /* clip comment or newline */
-
+      
       /* Skip over leading space
        */
       while(isspace(*s))
@@ -69,6 +69,6 @@ int main(int argc, char** argv)
       return EXIT_FAILURE;
    }
    printf("%d lines\n", process_file(argv[1]));
-
+   
    return EXIT_SUCCESS;
 }

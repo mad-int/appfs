@@ -8,7 +8,7 @@ ex="ex5"
 
 students=(inken.gamrath simon steger weltsch lang buerschaper schrezenmaier iupinov)
 
-tests=($home/data/corrupt* $home/data/error* $home/data/test*)
+tests=("$home"/data/corrupt* "$home"/data/error* "$home"/data/test*)
 
 for student in ${students[@]}
 do
@@ -26,7 +26,7 @@ do
    lcov -d obj/ -c -o cov/coverage.info
    lcov -d src/ -c -o cov/coverage.info
    lcov -d . -c -o cov/coverage.info
-   genhtml cov/coverage.info
-   cd $home
+   genhtml -o cov cov/coverage.info
+   cd "$home"
 done
 
