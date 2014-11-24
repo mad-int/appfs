@@ -22,8 +22,8 @@ void printMatrix(const struct linearProgram* lp) {
 	sets the array feasibles at index i to 1 if 
 	the binary representation of i seen as indexvector is a feasible solution
 	\param ilp is some struct of linearProgram [READ-ONLY]
-	\param feasibles the array where all incidence-vectors of feasible solutions are svaed
-	\return the number of feasible solutions to the lienar program
+	\param feasibles the array where all incidence-vectors of feasible solutions are saved
+	\return the number of feasible solutions to the linear program
 */
 int giveFeasibles(struct linearProgram* binaryLP) {
 				
@@ -33,7 +33,9 @@ int giveFeasibles(struct linearProgram* binaryLP) {
 	// initialize array of chars - we need one for each possible vector x
 
 	//for each incidencevector
-	for(unsigned int j = 0; j < (1u << binaryLP->col); ++j) {
+	unsigned long int columns_power = 1lu << binaryLP->col;
+	
+	for(unsigned int j = 0; j < (columns_power); ++j) {
 		x_is_valid = 1;
 		// each row must be feasible...
 		for(int i = 0; i < binaryLP->row && x_is_valid; ++i) {
@@ -42,7 +44,7 @@ int giveFeasibles(struct linearProgram* binaryLP) {
 			// only if the 
 			for(int k = 0; k < binaryLP->col; ++k) {
 				// if index vector j has a "1" at position "i"
-				if (j & (1u << k)) {
+				if (j & (1lu << k)) {
 					row_result += binaryLP->coeffs[i][k];
 				}
 			}
@@ -74,13 +76,14 @@ int giveFeasibles(struct linearProgram* binaryLP) {
 */
 void printBinaryVectors(const struct linearProgram* binaryLP) {
 	int counter = 0;
-	for(unsigned int j = 0; j < (1u << binaryLP->col); ++j) {
+	unsigned long int columns_power = 1lu << binaryLP->col;
+	for(unsigned int j = 0; j < (columns_power); ++j) {
 		//vectors[j] is set to one -> bit-representation of j is feasible vector
 		if (binaryLP->feasibles[j]) {
 			counter++;
 			for(int i = 0; i < binaryLP->col; ++i) {
 				// Transform *vectors to int for bitwise operations
-				if (j & (1u << i)) {
+				if (j & (1lu << i)) {
 					printf("x_%d = 1\n", i + 1);
 				}
 				else {

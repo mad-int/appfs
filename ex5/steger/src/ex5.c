@@ -36,7 +36,11 @@ int main(int argc, char** argv)
    	if (IS_DOUBLE) {
 	   printf("\nall values considered as doubles...\n\n");
    	}
+	clock_t create_start =clock();
 	struct linearProgram* ilp = createLPFromFile(argv[1]);
+	clock_t create_end = clock();
+	printf("Laufzeit der LP-Erstellung: %.8f Sekunden\n",(float)(create_end-create_start) / CLOCKS_PER_SEC);
+	
 	// compute feasible vectors from ILP
 	clock_t enumeration_start=clock();
 	int numberOfFeasibles = giveFeasibles(ilp);
