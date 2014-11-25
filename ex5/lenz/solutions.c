@@ -3,8 +3,8 @@
 #include <string.h> // strpbrk
 #include <assert.h> // assert
 #include <time.h> // clock
-#include "allocate.h"
 
+#include "allocate.h"
 #include "solutions.h"
 
 #define GET_SEC(a, b) ((b - a) / (double)CLOCKS_PER_SEC)
@@ -68,7 +68,7 @@ int test_sol( int* sol, BP* prob )
             break;
         default:
             fprintf(stderr,"ERROR\n");
-            exit(-1);
+            exit(1);
             break;
         }
     }

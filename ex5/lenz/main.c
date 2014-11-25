@@ -6,6 +6,7 @@
 
 #include "allocate.h"
 #include "readfile.h"
+#include "solutions.h"
 
 int main(int argc, char** argv)
 {
@@ -20,7 +21,7 @@ int main(int argc, char** argv)
     prob = allocate(1, sizeof(*prob));
 
     process_file( argv[1], prob );
-    print_problem( prob );
+//     print_problem( prob );
     find_binary_solutions( prob );
 
     /* free memory */

@@ -2,7 +2,7 @@
 #include <stdlib.h> // EXIT_*
 #include <string.h> // strpbrk
 #include <assert.h> // assert
-#include <time.h> // clock
+#include <ctype.h>
 
 #include "allocate.h"
 #include "readfile.h"
@@ -69,7 +69,7 @@ int process_file( const char* filename, BP* prob )
             if( prob->nvars <= 0 || prob->nvars > MAX_LINE_LEN )
             {
                 fprintf(stderr,"Incompatible number of variables are specified, %d many variables.\n", prob->nvars);
-                exit(-1);
+                exit(1);
             }
 
             /* check if input data for variables is correct */
@@ -81,7 +81,7 @@ int process_file( const char* filename, BP* prob )
             if( strcmp(r, "\0") != 0 && r!= strpbrk(r, "#\n\r") )
             {
                 fprintf(stderr, "Wrong input data for number of variables specified.\n");
-                exit(-1);
+                exit(1);
             }
 
             prob->eq_type = allocate(prob->nvars, sizeof(*(prob->rhs)));
@@ -98,7 +98,7 @@ int process_file( const char* filename, BP* prob )
             if( prob->nconss <= 0 )
             {
                 fprintf(stderr,"Incompatible number of constraints are specified, %d many constraints.\n", prob->nconss);
-                exit(-1);
+                exit(1);
             }
 
             /* check if input data for constraints is correct */
@@ -110,7 +110,7 @@ int process_file( const char* filename, BP* prob )
             if( strcmp(r, "\0") != 0 && r!= strpbrk(r, "#\n\r") )
             {
                 fprintf(stderr, "Wrong input data for number of constraints specified.\n");
-                exit(-1);
+                exit(1);
             }
 
             /* allocate memory and initialize everything, since we know the number of constraints
@@ -166,7 +166,7 @@ int process_file( const char* filename, BP* prob )
                 if( prob->nconss <= j )
                 {
                     fprintf(stderr,"Too many constraints are specified, just %d are allowed.\n", prob->nconss);
-                    exit(-1);
+                    exit(1);
                 }
 
                 /* store it in matrix */
@@ -182,7 +182,7 @@ int process_file( const char* filename, BP* prob )
                 if( *s == '=' || *s == '<' || *s == '>')
                 {
                     fprintf(stderr,"Number of variables in %d.constraint is %d, but is expected to be %d \n", j+1, cntVars-1, prob->nvars);
-                    exit(-1);
+                    exit(1);
                 }
             }
             assert( cntVars == prob->nvars );
@@ -208,7 +208,7 @@ int process_file( const char* filename, BP* prob )
                 break;
             default:
                 fprintf(stderr,"Equality type is expected to come next in constraint %d.\n", j+1);
-                exit(-1);
+                exit(1);
                 break;
             }
 
@@ -237,7 +237,7 @@ int process_file( const char* filename, BP* prob )
     if( j != prob->nconss )
     {
         fprintf(stderr,"%d many constraints are specified, but model is expected to have %d \n", j, prob->nconss);
-        exit(-1);
+        exit(1);
     }
     assert( j == prob->nconss );
     fclose(fp);
@@ -258,7 +258,7 @@ void checkInputData( char* s, int i, int j, bool rhsIndicator)
         else {
             fprintf(stderr, "Wrong input data for %d.variable in %d.constraint.\n", i+1, j+1);
         }
-        exit(-1);
+        exit(1);
     }
 }
 
@@ -288,7 +288,7 @@ void print_problem( BP* prob )
             break;
         default:
             fprintf(stderr,"ERROR\n");
-            exit(-1);
+            exit(1);
             break;
         }
 #else
@@ -309,7 +309,7 @@ void print_problem( BP* prob )
             break;
         default:
             fprintf(stderr,"ERROR\n");
-            exit(-1);
+            exit(1);
             break;
         }
 #endif // DOUBLE
