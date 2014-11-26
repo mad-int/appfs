@@ -27,12 +27,6 @@ int process_file( const char* filename, BP* prob )
     int j = 0; /* counts number of constraints */
     int cntVars; /* counts number of vars for each constraint*/
 
-#ifdef USE_DOUBLE
-    typedef double Value;
-#else
-    typedef int Value;
-#endif // USE_DOUBLE
-
     if (NULL == (fp = fopen(filename, "r")))
     {
         fprintf(stderr, "Can't open file %s\n", filename);
@@ -57,20 +51,13 @@ int process_file( const char* filename, BP* prob )
         switch(mode) {
 
         case READ_COLS:
-#ifdef USE_DOUBLE
-            prob->nvars = strtod(s, NULL);
-#else
-            prob->nvars = strtol(s, NULL, 0);
-#endif // USE_DOUBLE
+            prob->nvars = tostr(s, &r);
 
             if( prob->nvars <= 0 || prob->nvars > MAX_LINE_LEN )
             {
                 fprintf(stderr,"Incompatible number of variables are specified, %d many variables.\n", prob->nvars);
                 exit(1);
             }
-
-            /* check if input data for variables is correct */
-            strtol(s, &r, 10);
 
             while (isspace(*r))
                 r++;
@@ -86,11 +73,7 @@ int process_file( const char* filename, BP* prob )
             break;
 
         case READ_ROWS:
-#ifdef USE_DOUBLE
-            prob->nconss = strtod(s, NULL);
-#else
-            prob->nconss = strtol(s, NULL, 0);
-#endif // USE_DOUBLE
+            prob->nconss = tostr(s, NULL);
 
             if( prob->nconss <= 0 )
             {
@@ -144,19 +127,13 @@ int process_file( const char* filename, BP* prob )
                     r++;
                 /* r is pointing to a whitespace....  */
                 /* so if str is "86 10 34 ..."
-                     s r
+                                 s r
                 we obtain the number from s until r and entry stores 86 */
 
                 /* check input data */
                 checkInputData( s, i, j, false);
 
-#ifdef USE_DOUBLE
-                Value entry = strtod(s, &r);
-                /* printf("read entry: %f\n", entry); */
-#else
-                Value entry = strtol(s, &r, 0);
-                /* printf("read entry: %d\n", entry); */
-#endif // USE_DOUBLE
+                Value entry = tostr(s, &r);
 
                 cntVars += 1;
 
@@ -167,11 +144,7 @@ int process_file( const char* filename, BP* prob )
                 }
 
                 /* store it in matrix */
-#ifdef USE_DOUBLE
                 prob->conss[j][i] = entry;
-#else
-                prob->conss[j][i] = entry;
-#endif // USE_DOUBLE
 
                 /* we want to go to next number... so s points to where r was pointing! */
                 s = r;
@@ -209,12 +182,7 @@ int process_file( const char* filename, BP* prob )
             /* check input data */
             checkInputData(s, i, j, true);
 
-#ifdef USE_DOUBLE
-            Value rhs = strtod(s, NULL);
-#else
-            Value rhs = strtol(s, NULL, 0);
-            /* printf("rhs is %d\n", rhs); */
-#endif // USE_DOUBLE
+            Value rhs = tostr(s, NULL);
             prob->rhs[j] = rhs;
 
             j++;
@@ -248,59 +216,5 @@ void checkInputData( char* s, int i, int j, bool rhsIndicator)
             fprintf(stderr, "Wrong input data for %d.variable in %d.constraint.\n", i+1, j+1);
         }
         exit(1);
-    }
-}
-
-void print_problem( BP* prob )
-{
-    int i;
-    int j;
-    printf("Optimization problem has %d rows and %d cols\n", prob->nconss, prob->nvars);
-
-    for( i = 0; i < prob->nconss; i++ )
-    {
-#ifdef USE_DOUBLE
-        for( j = 0; j < prob->nvars; j++ )
-        {
-            printf("%f ", prob->conss[i][j]);
-        }
-        switch( prob->eq_type[i] )
-        {
-        case 'E':
-            printf(" == %f\n", prob->rhs[i]);
-            break;
-        case 'L':
-            printf(" <= %f\n", prob->rhs[i]);
-            break;
-        case 'R':
-            printf(" >= %f\n", prob->rhs[i]);
-            break;
-        default:
-            fprintf(stderr,"ERROR\n");
-            exit(1);
-            break;
-        }
-#else
-        for( j = 0; j < prob->nvars; j++ )
-        {
-            printf("%d ", prob->conss[i][j]);
-        }
-        switch( prob->eq_type[i] )
-        {
-        case 'E':
-            printf(" == %d\n", prob->rhs[i]);
-            break;
-        case 'L':
-            printf(" <= %d\n", prob->rhs[i]);
-            break;
-        case 'R':
-            printf(" >= %d\n", prob->rhs[i]);
-            break;
-        default:
-            fprintf(stderr,"ERROR\n");
-            exit(1);
-            break;
-        }
-#endif // USE_DOUBLE
     }
 }

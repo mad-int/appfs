@@ -7,6 +7,7 @@
 #include "allocate.h"
 #include "readfile.h"
 #include "solutions.h"
+#include "bp.h"
 
 int main(int argc, char** argv)
 {
