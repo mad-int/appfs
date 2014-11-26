@@ -7,8 +7,11 @@ GitLab: https://gitlab.tubit.tu-berlin.de/mattjsbb/appfs
 
 GitHub: https://github.com/mattmilten/appfs
 
-#### note for ex6: ```make check``` should run some tests and also check the result/return values for correctness
+#### note for ex6:
+##### - ```make check``` should run some tests and also check the result/return values for correctness
+##### - general practice in many command line tools to verify the installation
 
+#### general notes
  - How to keep your repo in sync with the main one: https://help.github.com/articles/syncing-a-fork/
  - Have a look at the [Wiki] (https://github.com/mattmilten/appfs/wiki) for more information on the tools that were used in the lecture
  - It would be nice to have Makefiles for your code to make compiling easier
