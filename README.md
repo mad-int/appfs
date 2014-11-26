@@ -8,8 +8,8 @@ GitLab: https://gitlab.tubit.tu-berlin.de/mattjsbb/appfs
 GitHub: https://github.com/mattmilten/appfs
 
 #### note for ex6:
-##### - ```make check``` should run some tests and also check the result/return values for correctness
-##### - general practice in many command line tools to verify the installation
+##### - ```make check``` should run some tests and also check the result/return values for correctness (general practice in many command line tools to verify the installation)
+##### - you may also update your code in ```ex5/``` instead of creating a new directory
 
 #### general notes
  - How to keep your repo in sync with the main one: https://help.github.com/articles/syncing-a-fork/
