@@ -27,13 +27,11 @@ int process_file( const char* filename, BP* prob )
     int j = 0; /* counts number of constraints */
     int cntVars; /* counts number of vars for each constraint*/
 
-#ifdef DOUBLE
-    double entryDbl;
-    double rhsDbl;
+#ifdef USE_DOUBLE
+    typedef double Value;
 #else
-    int entryInt;
-    int rhsInt;
-#endif // DOUBLE
+    typedef int Value;
+#endif // USE_DOUBLE
 
     if (NULL == (fp = fopen(filename, "r")))
     {
@@ -59,11 +57,11 @@ int process_file( const char* filename, BP* prob )
         switch(mode) {
 
         case READ_COLS:
-#ifdef DOUBLE
+#ifdef USE_DOUBLE
             prob->nvars = strtod(s, NULL);
 #else
             prob->nvars = strtol(s, NULL, 0);
-#endif
+#endif // USE_DOUBLE
 
             if( prob->nvars <= 0 || prob->nvars > MAX_LINE_LEN )
             {
@@ -88,11 +86,11 @@ int process_file( const char* filename, BP* prob )
             break;
 
         case READ_ROWS:
-#ifdef DOUBLE
+#ifdef USE_DOUBLE
             prob->nconss = strtod(s, NULL);
 #else
             prob->nconss = strtol(s, NULL, 0);
-#endif
+#endif // USE_DOUBLE
 
             if( prob->nconss <= 0 )
             {
@@ -152,13 +150,13 @@ int process_file( const char* filename, BP* prob )
                 /* check input data */
                 checkInputData( s, i, j, false);
 
-#ifdef DOUBLE
-                entryDbl = strtod(s, &r);
-                /* printf("read entry: %f\n", entryDbl); */
+#ifdef USE_DOUBLE
+                Value entry = strtod(s, &r);
+                /* printf("read entry: %f\n", entry); */
 #else
-                entryInt = strtol(s, &r, 0);
-                /* printf("read entry: %d\n", entryInt); */
-#endif
+                Value entry = strtol(s, &r, 0);
+                /* printf("read entry: %d\n", entry); */
+#endif // USE_DOUBLE
 
                 cntVars += 1;
 
@@ -169,11 +167,11 @@ int process_file( const char* filename, BP* prob )
                 }
 
                 /* store it in matrix */
-#ifdef DOUBLE
-                prob->conss[j][i] = entryDbl;
+#ifdef USE_DOUBLE
+                prob->conss[j][i] = entry;
 #else
-                prob->conss[j][i] = entryInt;
-#endif
+                prob->conss[j][i] = entry;
+#endif // USE_DOUBLE
 
                 /* we want to go to next number... so s points to where r was pointing! */
                 s = r;
@@ -211,14 +209,13 @@ int process_file( const char* filename, BP* prob )
             /* check input data */
             checkInputData(s, i, j, true);
 
-#ifdef DOUBLE
-            rhsDbl = strtod(s, NULL);
-            prob->rhs[j] = rhsDbl;
+#ifdef USE_DOUBLE
+            Value rhs = strtod(s, NULL);
 #else
-            rhsInt = strtol(s, NULL, 0);
-            prob->rhs[j] = rhsInt;
-            /* printf("rhs is %d\n", rhsInt); */
-#endif
+            Value rhs = strtol(s, NULL, 0);
+            /* printf("rhs is %d\n", rhs); */
+#endif // USE_DOUBLE
+            prob->rhs[j] = rhs;
 
             j++;
             break;
@@ -262,7 +259,7 @@ void print_problem( BP* prob )
 
     for( i = 0; i < prob->nconss; i++ )
     {
-#ifdef DOUBLE
+#ifdef USE_DOUBLE
         for( j = 0; j < prob->nvars; j++ )
         {
             printf("%f ", prob->conss[i][j]);
@@ -304,6 +301,6 @@ void print_problem( BP* prob )
             exit(1);
             break;
         }
-#endif // DOUBLE
+#endif // USE_DOUBLE
     }
 }

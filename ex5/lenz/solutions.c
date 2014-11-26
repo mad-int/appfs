@@ -39,7 +39,7 @@ int test_sol( int* sol, BP* prob )
 {
     int i;
     int j;
-#ifdef DOUBLE
+#ifdef USE_DOUBLE
     double lhs;
 #else
     int lhs;

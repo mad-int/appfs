@@ -3,9 +3,9 @@
 
 #include <stdbool.h> // bool
 
-#define INT
+#define USE_INT
 
-#ifdef DOUBLE
+#ifdef USE_DOUBLE
 typedef struct binaryProgram
 {
     double** conss;
@@ -23,7 +23,7 @@ typedef struct binaryProgram
     int   nconss;
     int   nvars;
 } BP;
-#endif // DOUBLE
+#endif // USE_DOUBLE
 
 extern int process_file( const char* filename, BP* prob );
 
