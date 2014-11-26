@@ -26,7 +26,6 @@ int process_file( const char* filename, BP* prob )
     int i;
     int j = 0; /* counts number of constraints */
     int cntVars; /* counts number of vars for each constraint*/
-    int auxNum;  /* for checking the number of variables and constraints */
 
 #ifdef DOUBLE
     double entryDbl;
@@ -73,7 +72,7 @@ int process_file( const char* filename, BP* prob )
             }
 
             /* check if input data for variables is correct */
-            auxNum = strtol(s, &r, 10);
+            strtol(s, &r, 10);
 
             while (isspace(*r))
                 r++;
@@ -102,7 +101,7 @@ int process_file( const char* filename, BP* prob )
             }
 
             /* check if input data for constraints is correct */
-            auxNum = strtol(s, &r, 10);
+            strtol(s, &r, 10);
 
             while (isspace(*r))
                 r++;
@@ -178,12 +177,6 @@ int process_file( const char* filename, BP* prob )
 
                 /* we want to go to next number... so s points to where r was pointing! */
                 s = r;
-
-                if( *s == '=' || *s == '<' || *s == '>')
-                {
-                    fprintf(stderr,"Number of variables in %d.constraint is %d, but is expected to be %d \n", j+1, cntVars-1, prob->nvars);
-                    exit(1);
-                }
             }
             assert( cntVars == prob->nvars );
             /* get eq_type of inequality */
@@ -209,7 +202,6 @@ int process_file( const char* filename, BP* prob )
             default:
                 fprintf(stderr,"Equality type is expected to come next in constraint %d.\n", j+1);
                 exit(1);
-                break;
             }
 
             /* get rhs */

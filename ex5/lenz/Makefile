@@ -1,5 +1,5 @@
 SHELL = /bin/bash
-CC = gcc
+CC = gcc -Wall -ftest-coverage -fprofile-arcs -p
 
 OBJECTS = main.o allocate.o readfile.o solutions.o
 
