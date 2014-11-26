@@ -176,6 +176,8 @@ LinearProgram* read_from_file_lp(const char* file_name)
                char ending[MAX_LINE_LEN];
                if(1 != sscanf(ptr, "%d%s", &var, &ending))
                   parse_error(file_name, lines, "wrong format for the number of variables");
+			   if(var <= 0)
+			      parse_error(file_name, lines, "non-positive number of variables");
                ptr = strtok(NULL, " ");
                ++i;
             }
@@ -189,6 +191,8 @@ LinearProgram* read_from_file_lp(const char* file_name)
                char ending[MAX_LINE_LEN];
                if(1 != sscanf(s, "%d%s", &constr, &ending))
                   parse_error(file_name, lines, "wrong format for the numbe of constraints");
+			   if(constr <= 0)
+			      parse_error(file_name, lines, "non-positive number of constraints");
                lp = new_lp(var, constr);
                ptr = strtok(NULL, " ");
                ++i;
@@ -236,12 +240,18 @@ LinearProgram* read_from_file_lp(const char* file_name)
                ptr = strtok(NULL, " ");
                ++i;
             }
+			if(i < var + 2)
+			   parse_error(file_name, lines, "too few entries in line");
             add_constraint_lp(lp, row, sign, rhs);
             ++added_rows;
          }
       }
          
    }
+   
+   if(added_rows < constr)
+      parse_error(file_name, lines, "too few constraints specified");
+   
    fclose(fp);
    
    return lp;
