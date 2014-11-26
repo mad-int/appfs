@@ -1,6 +1,6 @@
-# wrong row number format
+# non positive number of rows
 3 #cols
-3as #rows
+-3 #rows
 1 2 3 <= 3
 1 2 3 <= 2
 -4 3 -5 <= 5
