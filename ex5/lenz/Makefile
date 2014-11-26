@@ -18,3 +18,6 @@ clean:
 
 check:
 	./check.sh
+
+valgrind:
+	./valgrind.sh
