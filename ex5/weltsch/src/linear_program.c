@@ -356,7 +356,7 @@ void __print_constraint_type(int row, LinearProgram* lp) {
     } else {
         /* should never happen */
         printf("\nassigned unknown constraint type, fatal error\n");
-        exit(EXIT_FAILURE);
+        abort();
     }
 }
 
