@@ -8,9 +8,15 @@
 
 typedef double num_t;
 
+static const num_t MAX_COEF_VAL = (num_t) LLONG_MAX;
+static const num_t MIN_COEF_VAL = (num_t) LLONG_MIN;
+
 #else
 
 typedef int num_t;
+
+static const num_t MAX_COEF_VAL = INT_MAX;
+static const num_t MIN_COEF_VAL = INT_MIN;
 
 #endif
 
