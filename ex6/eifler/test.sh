@@ -1,7 +1,6 @@
 home='pwd'
 
-tests=(~/appfs/data/corrupt* ~/appfs/data/error* ~/appfs/data/test*)
-
+tests=("$home"/data/corrupt* "$home"/data/error* "$home"/data/test*)
 
 for test in ${tests[@]}
    do
