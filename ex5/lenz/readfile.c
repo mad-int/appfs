@@ -2,7 +2,7 @@
 #include <stdlib.h> // EXIT_*
 #include <string.h> // strpbrk
 #include <assert.h> // assert
-#include <time.h> // clock
+#include <ctype.h>
 
 #include "allocate.h"
 #include "readfile.h"
@@ -26,15 +26,6 @@ int process_file( const char* filename, BP* prob )
     int i;
     int j = 0; /* counts number of constraints */
     int cntVars; /* counts number of vars for each constraint*/
-    int auxNum;  /* for checking the number of variables and constraints */
-
-#ifdef DOUBLE
-    double entryDbl;
-    double rhsDbl;
-#else
-    int entryInt;
-    int rhsInt;
-#endif // DOUBLE
 
     if (NULL == (fp = fopen(filename, "r")))
     {
@@ -60,28 +51,22 @@ int process_file( const char* filename, BP* prob )
         switch(mode) {
 
         case READ_COLS:
-#ifdef DOUBLE
-            prob->nvars = strtod(s, NULL);
-#else
-            prob->nvars = strtol(s, NULL, 0);
-#endif
+            prob->nvars = tostr(s, NULL);
 
             if( prob->nvars <= 0 || prob->nvars > MAX_LINE_LEN )
             {
                 fprintf(stderr,"Incompatible number of variables are specified, %d many variables.\n", prob->nvars);
-                exit(-1);
+                exit(1);
             }
 
-            /* check if input data for variables is correct */
-            auxNum = strtol(s, &r, 10);
-
+            strtol(s, &r, 10);
             while (isspace(*r))
                 r++;
 
             if( strcmp(r, "\0") != 0 && r!= strpbrk(r, "#\n\r") )
             {
                 fprintf(stderr, "Wrong input data for number of variables specified.\n");
-                exit(-1);
+                exit(1);
             }
 
             prob->eq_type = allocate(prob->nvars, sizeof(*(prob->rhs)));
@@ -89,20 +74,16 @@ int process_file( const char* filename, BP* prob )
             break;
 
         case READ_ROWS:
-#ifdef DOUBLE
-            prob->nconss = strtod(s, NULL);
-#else
-            prob->nconss = strtol(s, NULL, 0);
-#endif
+            prob->nconss = tostr(s, NULL);
 
             if( prob->nconss <= 0 )
             {
                 fprintf(stderr,"Incompatible number of constraints are specified, %d many constraints.\n", prob->nconss);
-                exit(-1);
+                exit(1);
             }
 
             /* check if input data for constraints is correct */
-            auxNum = strtol(s, &r, 10);
+            strtol(s, &r, 10);
 
             while (isspace(*r))
                 r++;
@@ -110,7 +91,7 @@ int process_file( const char* filename, BP* prob )
             if( strcmp(r, "\0") != 0 && r!= strpbrk(r, "#\n\r") )
             {
                 fprintf(stderr, "Wrong input data for number of constraints specified.\n");
-                exit(-1);
+                exit(1);
             }
 
             /* allocate memory and initialize everything, since we know the number of constraints
@@ -147,43 +128,27 @@ int process_file( const char* filename, BP* prob )
                     r++;
                 /* r is pointing to a whitespace....  */
                 /* so if str is "86 10 34 ..."
-                     s r
+                                 s r
                 we obtain the number from s until r and entry stores 86 */
 
                 /* check input data */
                 checkInputData( s, i, j, false);
 
-#ifdef DOUBLE
-                entryDbl = strtod(s, &r);
-                /* printf("read entry: %f\n", entryDbl); */
-#else
-                entryInt = strtol(s, &r, 0);
-                /* printf("read entry: %d\n", entryInt); */
-#endif
+                Value entry = tostr(s, &r);
 
                 cntVars += 1;
 
                 if( prob->nconss <= j )
                 {
                     fprintf(stderr,"Too many constraints are specified, just %d are allowed.\n", prob->nconss);
-                    exit(-1);
+                    exit(1);
                 }
 
                 /* store it in matrix */
-#ifdef DOUBLE
-                prob->conss[j][i] = entryDbl;
-#else
-                prob->conss[j][i] = entryInt;
-#endif
+                prob->conss[j][i] = entry;
 
                 /* we want to go to next number... so s points to where r was pointing! */
                 s = r;
-
-                if( *s == '=' || *s == '<' || *s == '>')
-                {
-                    fprintf(stderr,"Number of variables in %d.constraint is %d, but is expected to be %d \n", j+1, cntVars-1, prob->nvars);
-                    exit(-1);
-                }
             }
             assert( cntVars == prob->nvars );
             /* get eq_type of inequality */
@@ -208,8 +173,7 @@ int process_file( const char* filename, BP* prob )
                 break;
             default:
                 fprintf(stderr,"Equality type is expected to come next in constraint %d.\n", j+1);
-                exit(-1);
-                break;
+                exit(1);
             }
 
             /* get rhs */
@@ -219,14 +183,8 @@ int process_file( const char* filename, BP* prob )
             /* check input data */
             checkInputData(s, i, j, true);
 
-#ifdef DOUBLE
-            rhsDbl = strtod(s, NULL);
-            prob->rhs[j] = rhsDbl;
-#else
-            rhsInt = strtol(s, NULL, 0);
-            prob->rhs[j] = rhsInt;
-            /* printf("rhs is %d\n", rhsInt); */
-#endif
+            Value rhs = tostr(s, NULL);
+            prob->rhs[j] = rhs;
 
             j++;
             break;
@@ -237,7 +195,7 @@ int process_file( const char* filename, BP* prob )
     if( j != prob->nconss )
     {
         fprintf(stderr,"%d many constraints are specified, but model is expected to have %d \n", j, prob->nconss);
-        exit(-1);
+        exit(1);
     }
     assert( j == prob->nconss );
     fclose(fp);
@@ -258,60 +216,6 @@ void checkInputData( char* s, int i, int j, bool rhsIndicator)
         else {
             fprintf(stderr, "Wrong input data for %d.variable in %d.constraint.\n", i+1, j+1);
         }
-        exit(-1);
-    }
-}
-
-void print_problem( BP* prob )
-{
-    int i;
-    int j;
-    printf("Optimization problem has %d rows and %d cols\n", prob->nconss, prob->nvars);
-
-    for( i = 0; i < prob->nconss; i++ )
-    {
-#ifdef DOUBLE
-        for( j = 0; j < prob->nvars; j++ )
-        {
-            printf("%f ", prob->conss[i][j]);
-        }
-        switch( prob->eq_type[i] )
-        {
-        case 'E':
-            printf(" == %f\n", prob->rhs[i]);
-            break;
-        case 'L':
-            printf(" <= %f\n", prob->rhs[i]);
-            break;
-        case 'R':
-            printf(" >= %f\n", prob->rhs[i]);
-            break;
-        default:
-            fprintf(stderr,"ERROR\n");
-            exit(-1);
-            break;
-        }
-#else
-        for( j = 0; j < prob->nvars; j++ )
-        {
-            printf("%d ", prob->conss[i][j]);
-        }
-        switch( prob->eq_type[i] )
-        {
-        case 'E':
-            printf(" == %d\n", prob->rhs[i]);
-            break;
-        case 'L':
-            printf(" <= %d\n", prob->rhs[i]);
-            break;
-        case 'R':
-            printf(" >= %d\n", prob->rhs[i]);
-            break;
-        default:
-            fprintf(stderr,"ERROR\n");
-            exit(-1);
-            break;
-        }
-#endif // DOUBLE
+        exit(1);
     }
 }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
 #include "allocate.h"
 
 void* allocate(int elems, int size)
