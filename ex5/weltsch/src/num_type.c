@@ -2,8 +2,6 @@
 #include "num_type.h"
 
 #ifdef USE_DOUBLE
-static const num_t MAX_COEF_VAL = (num_t) LLONG_MAX;
-static const num_t MIN_COEF_VAL = (num_t) LLONG_MIN;
 
 num_t parse_num(char* num_str, char** end_ptr) {
     return strtod(num_str, end_ptr);
@@ -23,8 +21,6 @@ void print_num(num_t num) {
 }
 
 #else
-static const num_t MAX_COEF_VAL = INT_MAX;
-static const num_t MIN_COEF_VAL = INT_MIN;
 
 num_t parse_num(char* num_str, char** end_ptr) {
     return (num_t) strtol(num_str, end_ptr, 10);
