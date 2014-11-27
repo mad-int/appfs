@@ -2,7 +2,11 @@ TARGET = ex5
 # LIBS = -lm
 CC = gcc
 # use -DUSE_DBL for double data type
-CFLAGS = -g -Wall -O3 -DUSE_DBL
+CFLAGS = -g -Wall -O3 --coverage -DUSE_DBL
+
+TESTS_DIR=../../data
+TESTS_TEMPLATES=$(TESTS_DIR)/corrupt* $(TESTS_DIR)/error* $(TESTS_DIR)/test*
+TESTS="" $(shell find $(TESTS_TEMPLATES)) 
 
 .PHONY: default all clean
 
@@ -22,6 +26,16 @@ HEADERS = ineq.h
 $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) $(CFLAGS) $(LIBS) -o $@
 
+check: all
+	for test in $(TESTS) ; do \
+		./$(TARGET) $$test ; \
+	done
+	lcov -d . -c -o coverage.info
+	genhtml -o coverage coverage.info
+
 clean:
 	-rm -f *.o
+	-rm -f *.gc*
 	-rm -f $(TARGET)
+	-rm -f coverage.info
+	-rm -rf coverage
