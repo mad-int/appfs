@@ -51,7 +51,7 @@ int process_file( const char* filename, BP* prob )
         switch(mode) {
 
         case READ_COLS:
-            prob->nvars = tostr(s, &r);
+            prob->nvars = tostr(s, NULL);
 
             if( prob->nvars <= 0 || prob->nvars > MAX_LINE_LEN )
             {
@@ -59,6 +59,7 @@ int process_file( const char* filename, BP* prob )
                 exit(1);
             }
 
+            strtol(s, &r, 10);
             while (isspace(*r))
                 r++;
 
