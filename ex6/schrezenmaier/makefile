@@ -19,6 +19,7 @@ CORRECT_SOLUTIONS_PATH = ../../data/solutions/
 
 $(BIN): $(OBJ)
 	$(CC) $(CFLAGS) -o prog $(OBJ)
+	@ln -sf $(BIN) ex6
 
 clean:
 	rm -f $(BIN) $(OBJ) $(COV)
