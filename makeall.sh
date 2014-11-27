@@ -23,7 +23,11 @@ do
 
       for test in ${tests[@]}
       do
-         ./$ex $test
+         if [ $student = "ex6/schrezenmaier" ] || [ $student = "ex5/schrezenmaier" ]; then
+            ./$ex $test sol
+         else
+            ./$ex $test
+         fi
       done
 
       if [ $coverage -eq 1 ]; then
