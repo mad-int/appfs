@@ -1,8 +1,8 @@
 TARGET = ex5
 # LIBS = -lm
 CC = gcc
-# use -DUSE_DBL for double data type
-CFLAGS = -g -Wall -O3 --coverage -DUSE_DBL
+# use -DUSE_DBL for double data type -DUSE_DBL
+CFLAGS = -g -std=c99 -Wall -Wextra -Wpedantic -O3 -DNDEBUG --coverage
 
 TESTS_DIR=../../data
 TESTS_TEMPLATES=$(TESTS_DIR)/corrupt* $(TESTS_DIR)/error* $(TESTS_DIR)/test*
@@ -26,7 +26,7 @@ HEADERS = ineq.h
 $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) $(CFLAGS) $(LIBS) -o $@
 
-check: all
+check: clean all
 	for test in $(TESTS) ; do \
 		./$(TARGET) $$test ; \
 	done
