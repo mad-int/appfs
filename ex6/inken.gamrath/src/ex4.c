@@ -9,8 +9,6 @@
 #include "bp.h"
 #include "reader.h"
 
-// #define DEBUG
-#define BRANCHING
 
 int main(int argc, char** argv)
 {
@@ -63,10 +61,6 @@ int main(int argc, char** argv)
       return EXIT_FAILURE;
    }
    assert(retcode = BP_OKAY);
-
-#ifdef DEBUG
-   printf("m: %i, n: %i\n", bp_getM(bp), bp_getN(bp));
-#endif
 
    clock_t enumeration = clock();
 

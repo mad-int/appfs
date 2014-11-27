@@ -37,12 +37,11 @@ extern int bp_getRedundant(BinaryProgram* bp);
 /* determines whether the binary program is empty */
 extern bool bp_is_empty(const BinaryProgram* bp);
 #endif
-/* solves the LP */
+/* solves the BP */
 extern BP_RETCODE solveBP(BinaryProgram* bp, FILE* fp);
-
+/* solves the BP with branching tree */
 extern BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp);
-
+/* branches in the tree */
 int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int depth, char* sol);
-int branchCutoff(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int depth, char* sol);
 
 #endif /* _PROBDATA_H_ */

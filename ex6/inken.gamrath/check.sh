@@ -17,7 +17,7 @@ for INSTANCE in `cat $TESTSET`
 
 #    echo "starting c computation"
    echo "@01 $INSTANCE" >> $OUTFILE
-   ./bin/ex4 $INSTANCE &>> $OUTFILE
+   ./bin/ex6 $INSTANCE &>> $OUTFILE
    echo "@04" >> $OUTFILE
    echo "=ready=" >> $OUTFILE
    echo "" >> $OUTFILE

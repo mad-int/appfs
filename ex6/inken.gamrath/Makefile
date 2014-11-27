@@ -27,14 +27,26 @@ MAKE		=	-O
 endif
 endif
 
+BRANCHING	=	true
+CUTOFF		=	false
+CFLAGS		=
+
 ifeq ($(TYPE),int)
-CFLAGS		=	-D INT
+CFLAGS		+=	-D INT
 else
 #ifeq ($(TYPE),double)
 #CFLAGS		=	-D DOUBLE
 #else
-CFLAGS		=	-D DOUBLE
+CFLAGS		+=	-D DOUBLE
 #endif
+endif
+
+ifeq ($(CUTOFF),true)
+CFLAGS		+=	-D CUTOFF
+endif
+
+ifeq ($(BRANCHING),true)
+CFLAGS		+=	-D BRANCHING
 endif
 
 MAINNAME	=	ex6

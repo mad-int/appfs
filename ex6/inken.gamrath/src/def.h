@@ -5,6 +5,8 @@
 #define MAX_STR_LEN 512 // Maximum string length
 #define MAX_MATRIX_SIZE 32 // Maximum colums and rows of matrix
 
+#define EPSILON 0.000000001
+
 #define MAX(x,y)      ((x) >= (y) ? (x) : (y))     /**< returns maximum of x and y */
 #define MIN(x,y)      ((x) <= (y) ? (x) : (y))     /**< returns minimum of x and y */
 

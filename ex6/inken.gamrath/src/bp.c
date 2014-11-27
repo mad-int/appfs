@@ -7,10 +7,6 @@
 #include "allocate.h"
 #include "bp.h"
 
-#define EPSILON 0.000000001
-
-#define CUTOFF
-
 // #define DEBUG
 // #define MORE_DEBUG
 
@@ -524,7 +520,6 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
 #endif
 #ifdef CUTOFF
    count += branch(fp, bp, lhs, min, max, depth+1, sol);
-//    count += branchCutoff(fp, bp, lhs, min, max, depth+1, sol);
 #else
    count += branch(fp, bp, lhs, NULL, NULL, depth+1, sol);
 #endif
@@ -539,7 +534,6 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
 #endif
 #ifdef CUTOFF
    count += branch(fp, bp, lhs, min, max, depth+1, sol);
-//    count += branchCutoff(fp, bp, lhs, min, max, depth+1, sol);
 #else
    count += branch(fp, bp, lhs, NULL, NULL, depth+1, sol);
 #endif
@@ -559,102 +553,6 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
 
    return BP_INFEASIBLE;
 }
-
-// int branchCutoff(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int depth, char* sol)
-// {
-//    bool unrestricted = true;
-//    long int count = 0;
-//
-// #ifdef DEBUG
-//    assert(sol != NULL);
-// #else
-//    assert(sol == NULL);
-// #endif
-//
-//    int i;
-//    for (i = 0; i < bp->m; i++)
-//    {
-//       if (lhs[i] + min[i] > bp->rhs[i])
-//       {
-//          break;
-//       }
-//       if (lhs[i] + max[i] > bp->rhs[i])
-//       {
-//          unrestricted = false;
-//       }
-//    }
-//
-//    if (i < bp->m)
-//       return count;
-//
-//
-//    if (unrestricted && i == bp->m)
-//    {
-//       if (depth == bp->n)
-//       {
-//          count++;
-// #ifdef DEBUG
-//          fprintf(fp, "%s\n", sol);
-// #endif
-//       }
-//       else
-//       {
-// #ifdef DEBUG
-//          long int length = pow(2, bp->n - depth);
-//          long int p;
-//          char* currsol;
-//          currsol = allocate(2*bp->n, sizeof(*currsol));
-//          for (long int i = 0; i < length; i++)
-//          {
-//             p = i;
-//             sprintf(currsol, "%s", sol);
-//             for (int k = depth; k < bp->n; k++)
-//                sprintf(currsol, "%s %li", currsol, p % 2);
-//             fprintf(fp, "%s\n", currsol);
-//          }
-//          deallocate(currsol);
-// #endif
-//          count += pow(2, bp->n - depth);
-//       }
-//       return count;
-//    }
-//
-//    if (depth < bp->n)
-//    {
-//       TYPE* blhs = allocate(bp->m, sizeof(*blhs));
-//       TYPE* bmax = allocate(bp->m, sizeof(*bmax));
-//       TYPE* bmin = allocate(bp->m, sizeof(*bmin));
-//
-//       for (i = 0; i < bp->n; i++)
-//       {
-//          bmax[i] = max[i] + MAX(bp->coefs[i*bp->n+depth-1], 0.0);
-//          bmin[i] = min[i] + MIN(bp->coefs[i*bp->n+depth-1], 0.0);
-//       }
-//       char* bsol = NULL;
-// #ifdef DEBUG
-//       bsol = allocate(2*bp->n, sizeof(*bsol));
-//       i = sprintf(bsol, "%s 0", sol);
-//       assert(i < 2*bp->n);
-// #endif
-//       count += branchCutoff(fp, bp, lhs, bmin, bmax, depth+1, bsol);
-//       for (i = 0; i < bp->n; i++)
-//          blhs[i] = lhs[i] + bp->coefs[i*bp->n+depth];
-// #ifdef DEBUG
-//       i = sprintf(bsol, "%s 1", sol);
-//       assert(i < 2*bp->n);
-// #endif
-//       count += branchCutoff(fp, bp, blhs, bmin, bmax, depth+1, bsol);
-//
-// #ifdef DEBUG
-//       deallocate(bsol);
-// #endif
-//       deallocate(bmax);
-//       deallocate(bmin);
-//       deallocate(blhs);
-//    }
-//
-//    return count;
-// }
 
 /*  */
 int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int depth, char* sol)

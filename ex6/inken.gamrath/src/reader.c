@@ -8,8 +8,6 @@
 #include "bp.h"
 #include "misc.h"
 
-// #define debug
-
 /* read problem data from file
  * returns amount of lines
  * returns BP_INVALIDDATA when there was a reading error
@@ -63,9 +61,6 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
       /* read lines */
       i++;
       j = 0;
-#ifdef debug
-      fprintf(stdout, "line %i: %s\n", lines, s);
-#endif
       tok = strtok(s, delimiter);
       switch(i)
       {
