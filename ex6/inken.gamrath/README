@@ -1,0 +1,27 @@
+Makefile
+--------
+use make with optional variables
+
+TYPE={int, double}
+switches between types of matrix entries [default: double]
+
+OPT={opt, dbg}
+switches between compiling modes (opt: -O3, dbg: -g) [default: -O]
+
+TEST={big}
+defines name of testset for make check [default: big]
+
+BRANCHING={true, false}
+switches between enumeration methods (true: branching tree, false: naive enumeration) [default: true]
+NOTE: the naive enumeration is the older and slower version
+
+CUTOFF={true, false}
+determines whether subtrees are cut off in the branching tree [default: false]
+
+
+source files
+------------
+in bp.c two flags can be defined
+
+DEBUG: prints the solutions
+MORE_DEBUG: prints even more information of the solving process

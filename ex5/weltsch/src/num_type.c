@@ -1,3 +1,4 @@
+#include <limits.h>
 #include "num_type.h"
 
 #ifdef USE_DOUBLE
@@ -7,6 +8,11 @@ num_t parse_num(char* num_str, char** end_ptr) {
 }
 
 bool is_num_valid(num_t num, char* num_str, char* end_ptr) {
+    if (num < MIN_COEF_VAL || num > MAX_COEF_VAL) {
+        fprintf(stderr, "number %.0lf is to big for an int\n", num);
+        return false;
+    }
+
     return (num_str != end_ptr);
 }
 
@@ -21,7 +27,7 @@ num_t parse_num(char* num_str, char** end_ptr) {
 }
 
 bool is_num_valid(num_t num, char* num_str, char* end_ptr) {
-    if (num >= INT_MAX || num <= INT_MIN) {
+    if (num > MAX_COEF_VAL || num < MIN_COEF_VAL) {
         fprintf(stderr, "number %d is to big for an int\n", num);
         return false;
     }

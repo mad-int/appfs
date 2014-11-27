@@ -1,0 +1,16 @@
+4 # cols (variables)
+3 # rows (constraints)
+2 3 5 4 <= 8
+3 6 0 8 <= 10
+0 0 1 1 <= 1
+#Solution:
+#Reading successful! Starting enumeration now.
+#Binary assignment 0000 is valid!
+#Binary assignment 1000 is valid!
+#Binary assignment 0100 is valid!
+#Binary assignment 1100 is valid!
+#Binary assignment 0010 is valid!
+#Binary assignment 1010 is valid!
+#Binary assignment 0110 is valid!
+#Binary assignment 0001 is valid!
+#8 feasible solutions found!
