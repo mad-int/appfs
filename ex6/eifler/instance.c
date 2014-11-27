@@ -19,8 +19,8 @@
 #define MAX_COEFF 1e20
 
 
-problem init_problem(int rows, int columns){
-    problem out;
+bip init_bip(int rows, int columns){
+    bip out;
     out.rows=rows;
     out.columns=columns;
     out.ordin= non_def;
@@ -28,16 +28,17 @@ problem init_problem(int rows, int columns){
     out.matrix=allocate(rows * columns, sizeof(*out.matrix));
     return out;
   }
-static bool is_initialized(problem test){
+
+static bool is_initialized(bip test){
     if(!test.rows || !test.columns || NULL==test.vector || NULL==test.matrix){
-        printf("Instanz nicht initialisiert. \n");
+        fprintf(stderr, "Instanz nicht initialisiert. \n");
         return false;
     }
     return true;
 }
 
 /* return a pointer to the row,col-element of the Matrix */
-type* get_elem(problem inst, int row, int col){
+type* get_elem(bip inst, int row, int col){
     if (!is_initialized(inst)) {
         return NULL;
     }
@@ -45,13 +46,13 @@ type* get_elem(problem inst, int row, int col){
 }
 
 /* change to value of the row,col-element of the matrix */
-void set_elem(problem inst, int row, int col, type value){
+void set_elem(bip inst, int row, int col, type value){
     if (!is_initialized(inst)) return;
     inst.matrix[row*inst.columns+col]=value;
 }
 
-/* deallocate the space of an initialized problem */
-void free_problem(problem in){
+/* deallocate the space of an initialized bip */
+void free_bip(bip in){
     if (!is_initialized(in))return;
     deallocate(in.vector);
     deallocate(in.matrix);
@@ -69,7 +70,7 @@ type scalar_product(type* vector1, int* vector2, int dim){
 
 
 /* checks if a vector is a feasible point of the LP */
-int is_Solution(problem inst, int* test){
+int is_Solution(bip inst, int* test){
     assert(is_initialized(inst));
     for (int i=0; i<inst.rows; ++i){
         if (scalar_product(get_elem(inst, i, 0),test, inst.columns)>inst.vector[i]) return 0;
@@ -77,7 +78,7 @@ int is_Solution(problem inst, int* test){
     return 1;
 }
 
-int is_Solution_eq(problem inst, int* test){
+int is_Solution_eq(bip inst, int* test){
     if (!is_initialized(inst)) {
         return 0;
     }
@@ -93,17 +94,17 @@ void print_solution(int* solution, int length){
     }
     printf("\n");
 }
-/* Print the Problem as A<=b or A>=b or A=b to the console */
-void print_problem(problem p){
+/* Print the bip as A<=b or A>=b or A=b to the console */
+void print_bip(bip p){
     if (!is_initialized(p)) {
         return;
     }
-    printf("Die Eingegebene Problemstellung ist: \n");
+    printf("The input BIP is: \n");
     char * ord;
     switch (p.ordin) {
         case non_def:
             ord="<=";
-            printf("Warnung: Kein Ordnungszeichen angegeben. Standarmäßige Verwendung <=. \n");
+            printf("Warning: No ordinance sign put in. By default use <=. \n");
             break;
         case smallereq:
             ord="<=";
@@ -133,7 +134,7 @@ void print_problem(problem p){
     
     
 }
-long bip_enumerate(const problem bip, bool with_output)
+long bip_enumerate(const bip bip, bool with_output)
 {
         assert(is_initialized(bip));
         clock_t start = clock();
@@ -171,7 +172,7 @@ long bip_enumerate(const problem bip, bool with_output)
     
         double elapsed = GET_SEC(start, clock());
     
-        printf("Es wurden %lld Vektoren getestet in %.3f s = %.3f kvecs/s\n",
+        printf(" %lld vectors were tested in %.3f s = %.3f kvecs/s\n",
                     count, elapsed, count / elapsed / 1000.0);
     
         return solus;
@@ -186,8 +187,8 @@ int cmpfunc (const void ** a, const void ** b)
     return 1;
 }
 
-void pre_order(problem inst, bool with_output){
-    problem temp=init_problem(inst.rows, inst.columns);
+void pre_order(bip inst, bool with_output){
+    bip temp=init_bip(inst.rows, inst.columns);
     for (int i=0; i<inst.rows; ++i) {
         for (int j=0; j<inst.columns; ++j) {
             set_elem(temp, i, j, *get_elem(inst, i, j));
@@ -209,7 +210,7 @@ void pre_order(problem inst, bool with_output){
     }
     qsort(pointers, inst.rows, sizeof(pointers[0]), cmpfunc);
     int orderind[inst.rows];
-    for (int i=0; i<inst.rows; ++i) {
+    for (int i=0; i<inst.rows; i++) {
         orderind[i]=pointers[i]-order;
     }
     for (int i=0; i<inst.rows; ++i) {
@@ -218,16 +219,17 @@ void pre_order(problem inst, bool with_output){
         }
         inst.vector[i]=temp.vector[orderind[i]];
     }
-    free_problem(temp);
-    if(with_output)print_problem(inst);
+    free_bip(temp);
+    if(with_output)print_bip(inst);
 }
 
-bool check_overflow(problem inst){
-    long long check=0;
-    int check2=0;
+bool check_overflow(bip inst){
+    
 #ifdef DOUBLE
     return true;
 #else
+    long long check=0;
+    int check2=0;
     for (int i=0; i<inst.rows; ++i) {
         for (int j=0; j<inst.columns; ++j) {
             check+=abs(*get_elem(inst, i, j));
@@ -241,14 +243,14 @@ bool check_overflow(problem inst){
     return true;
 #endif
 }
-//test all possible solutions on the problem
-long long find_solutions(problem inst, bool with_print){
+//test all possible solutions on the bip
+long long find_solutions(bip inst, bool with_print){
     assert(is_initialized(inst));
     
     //check for overflow
     if(!check_overflow(inst)){
         fprintf(stderr, "Coefficients too large. Overflow! \n");
-        return 0;
+        return -1;
     }
 
     

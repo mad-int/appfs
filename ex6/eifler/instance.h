@@ -25,15 +25,15 @@ typedef struct{
     enum ordination_sign ordin;
     type * vector;
     type * matrix;
-}problem;
+}bip;
 
-problem create_problem(char*);
-problem init_problem(int, int);
-void free_problem(problem);
-int is_Solution(problem , int* );
-void set_elem(problem, int, int, type);
-type* get_elem(problem, int, int);
-void print_problem(problem);
-long long find_solutions(problem, bool);
+bip create_bip(char*);
+bip init_bip(int, int);
+void free_bip(bip);
+int is_Solution(bip , int* );
+void set_elem(bip, int, int, type);
+type* get_elem(bip, int, int);
+void print_bip(bip);
+long long find_solutions(bip, bool);
 
 #endif /* defined(__ex4__instance__) */
