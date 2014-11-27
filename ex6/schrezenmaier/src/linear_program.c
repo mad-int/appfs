@@ -47,7 +47,7 @@ LinearProgram* new_lp(int var, int constr)
    lp->max_constr = 2 * constr;
    lp->matrix = allocate(lp->max_constr, sizeof(*lp->matrix));
    int i;
-   for (i = 0; i < var; ++i)
+   for (i = 0; i < lp->max_constr; ++i)
    {
       lp->matrix[i] = allocate(var, sizeof(*lp->matrix[0]));
    }
@@ -216,7 +216,7 @@ LinearProgram* read_from_file_lp(const char* file_name)
             {
                if(i < var)
                {
-                  char ending[MAX_LINE_LEN];
+                  char ending;
                   char argument[MAX_LINE_LEN];
                   sprintf(argument, "%s%s", NUMBER_FORMAT, "%s");
                   if(1 != sscanf(ptr, argument, &row[i], &ending))
@@ -237,7 +237,7 @@ LinearProgram* read_from_file_lp(const char* file_name)
                }
                else if(i == var + 1)
                {
-                  char ending[MAX_LINE_LEN];
+                  char ending;
                   char argument[MAX_LINE_LEN];
                   sprintf(argument, "%s%s", NUMBER_FORMAT, "%s");
                   if(1 != sscanf(ptr, argument, &rhs, &ending))
@@ -325,16 +325,19 @@ void print_feasible_binary_lp(LinearProgram* lp, char* file_name)
        
       /* calculate switching position */
       ++x_count;
-      int changed_var = 0;
+      int changed_var = __builtin_ffsl(x_count) - 1;
+      
+      /*int changed_var = 0;
       while((positions[changed_var] & x_count) == 0l)
-         ++changed_var;
+         ++changed_var;*/
+      
       if(changed_var >= lp->var)
          break;
       
       /* calculate new evaluation */
-      long sign = -1l;
+      NUMBER sign = -1;
       if((positions[changed_var + 1] & x_count) == 0l)
-         sign = 1l;
+         sign = 1;
       for(i = 0; i < lp->constr; ++i)
          eval[i] += sign * lp->matrix[i][changed_var];
    }

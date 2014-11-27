@@ -21,7 +21,7 @@ $(BIN): $(OBJ)
 	$(CC) $(CFLAGS) -o prog $(OBJ)
 
 clean:
-	rm -rf $(BIN) $(OBJ) $(COV)
+	rm -f $(BIN) $(OBJ) $(COV)
 
 check: $(BIN)
 	@passed=0; \
