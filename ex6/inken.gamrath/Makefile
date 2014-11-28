@@ -17,14 +17,10 @@ OBJDIR		=	obj
 BINDIR		=	bin
 SRCDIR		=	src
 
-ifeq ($(OPT),opt)
-MAKE		=	-O3
-else
 ifeq ($(OPT),dbg)
 MAKE		=	-g
 else
-MAKE		=	-O
-endif
+MAKE		=	-O3
 endif
 
 BRANCHING	=	true
@@ -100,3 +96,6 @@ endif
 .PHONY: check
 check:
 		$(SHELL) ./check.sh $(TEST)
+
+.PHONY: test
+test:		check
