@@ -365,7 +365,8 @@ bool bp_is_empty(const BinaryProgram* bp)
 }
 #endif
 
-/* solves the LP
+#ifndef BRANCHING
+/* solves the binary program
  * returns BP_OKAY, if a solution is found
  * returns BP_INFEASIBLE otherwise
  */
@@ -448,7 +449,7 @@ BP_RETCODE solveBP(BinaryProgram* bp, FILE* fp)
 
    return BP_INFEASIBLE;
 }
-
+#else
 /* solves the BP with Branching
  * returns BP_OKAY, if a solution is found
  * returns BP_INFEASIBLE otherwise
@@ -700,3 +701,4 @@ int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int dep
 
    return count;
 }
+#endif /* ! BRANCHING */

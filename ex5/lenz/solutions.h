@@ -1,7 +1,7 @@
 #ifndef _SOLUTIONS_H_
 #define _SOLUTIONS_H_
 
-#include "readfile.h"
+#include "bp.h"
 
 int next_sol(int* sol, int nvars );
 
