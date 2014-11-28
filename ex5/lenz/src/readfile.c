@@ -69,21 +69,20 @@ int process_file( const char* filename, BP* prob )
                 exit(1);
             }
 
-            prob->eq_type = allocate(prob->nvars, sizeof(*(prob->rhs)));
             mode = READ_ROWS;
             break;
 
         case READ_ROWS:
-            prob->nconss = tostr(s, NULL);
+            prob->nconss = tostr(s, &r);
+            assert(prob->nconss > 0);
+            prob->eq_type = allocate(prob->nconss, sizeof(*(prob->eq_type)));
+            assert(prob->eq_type != NULL);
 
             if( prob->nconss <= 0 )
             {
                 fprintf(stderr,"Incompatible number of constraints are specified, %d many constraints.\n", prob->nconss);
                 exit(1);
             }
-
-            /* check if input data for constraints is correct */
-            strtol(s, &r, 10);
 
             while (isspace(*r))
                 r++;
@@ -97,11 +96,7 @@ int process_file( const char* filename, BP* prob )
             /* allocate memory and initialize everything, since we know the number of constraints
             * and vars */
             prob->conss = allocate( prob->nconss, sizeof(*(prob->conss)) );
-            if ( prob->conss == NULL && strpbrk(s, "#\n\r") )
-            {
-                fprintf(stderr, "out of memory\n");
-                return EXIT_FAILURE;
-            }
+
             for( i = 0; i < prob->nconss; ++i )
             {
                 prob->conss[i] = allocate(prob->nvars, sizeof(**(prob->conss)));
@@ -132,7 +127,7 @@ int process_file( const char* filename, BP* prob )
                 we obtain the number from s until r and entry stores 86 */
 
                 /* check input data */
-                checkInputData( s, i, j, false);
+                checkInputData( s, i, j, false, prob);
 
                 Value entry = tostr(s, &r);
 
@@ -181,7 +176,7 @@ int process_file( const char* filename, BP* prob )
             s += 2;
 
             /* check input data */
-            checkInputData(s, i, j, true);
+            checkInputData(s, i, j, true, prob);
 
             Value rhs = tostr(s, NULL);
             prob->rhs[j] = rhs;
@@ -203,7 +198,7 @@ int process_file( const char* filename, BP* prob )
 }
 
 
-void checkInputData( char* s, int i, int j, bool rhsIndicator)
+void checkInputData( char* s, int i, int j, bool rhsIndicator, BP* prob)
 {
     int auxCheckData;
     int checkData = sscanf(s, "%d", &auxCheckData);
@@ -216,6 +211,7 @@ void checkInputData( char* s, int i, int j, bool rhsIndicator)
         else {
             fprintf(stderr, "Wrong input data for %d.variable in %d.constraint.\n", i+1, j+1);
         }
+        free_problem(prob);
         exit(1);
     }
 }

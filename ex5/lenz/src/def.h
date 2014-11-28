@@ -3,12 +3,12 @@
 
 #ifdef USE_DOUBLE
 #define Value double
-#define tostr(X, Y) strtol((X), (Y), 10)
+#define tostr(X, Y) strtod((X), (Y))
 #define BPFORMAT "g"
 #else
 #define Value int
-#define tostr(X, Y) strtod((X), (Y))
+#define tostr(X, Y) strtol((X), (Y), 10)
 #define BPFORMAT "d"
-#endif
+#endif // USE_DOUBLE
 
 #endif // _DEF_H_
