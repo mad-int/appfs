@@ -6,7 +6,7 @@
 #
 # Test if parsing is ok in this cases fail.
 #
-for file in `ls ../../data/corrupted_* ../../data/error_* ../../data/double_test1.dat` nofile.dat
+for file in `ls ../../data/corrupted_* ../../data/error_*` nofile.dat
 do
     ./ex6 $file 2>&1 &> /dev/null
     RETVAL=$?
@@ -24,7 +24,7 @@ done
 #
 # Test if parsing is ok in this cases it should be successful.
 #
-for file in `ls ../../data/test?*.dat ../../data/markshare_3_?.dat ../../data/ones16.dat ../../data/test4.dat`
+for file in `ls ../../data/test?*.dat ../../data/markshare_3_?.dat ../../data/double_test1.dat ../../data/geqTest.dat ../../data/ones16.dat ../../data/test4.dat`
 do
     ./ex6 $file 2>&1 &> /dev/null
     RETVAL=$?
