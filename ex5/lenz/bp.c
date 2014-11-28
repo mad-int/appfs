@@ -1,7 +1,9 @@
 #include <stdio.h> // fopen
 #include <stdlib.h> // EXIT_*
+#include <stdbool.h>
 
 #include "bp.h"
+#include "allocate.h"
 
 void print_problem( BP* prob )
 {
@@ -32,4 +34,17 @@ void print_problem( BP* prob )
             break;
         }
     }
+}
+
+void free_problem(BP* prob)
+{
+   int i;
+   deallocate(prob->rhs);
+    deallocate(prob->eq_type);
+    for( i = 0; i < prob->nconss; ++i )
+    {
+        deallocate(prob->conss[i]);
+    }
+    deallocate(prob->conss);
+    deallocate(prob);
 }

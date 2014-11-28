@@ -9,6 +9,6 @@
 extern int process_file( const char* filename, BP* prob );
 
 /* check input data for constraint matrix and rhs */
-void checkInputData( char* s, int i, int j, bool rhsIndicator );
+void checkInputData( char* s, int i, int j, bool rhsIndicator, BP* prob );
 
 #endif /* _READFILE_H_ */

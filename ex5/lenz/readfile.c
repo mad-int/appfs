@@ -132,7 +132,7 @@ int process_file( const char* filename, BP* prob )
                 we obtain the number from s until r and entry stores 86 */
 
                 /* check input data */
-                checkInputData( s, i, j, false);
+                checkInputData( s, i, j, false, prob);
 
                 Value entry = tostr(s, &r);
 
@@ -181,7 +181,7 @@ int process_file( const char* filename, BP* prob )
             s += 2;
 
             /* check input data */
-            checkInputData(s, i, j, true);
+            checkInputData(s, i, j, true, prob);
 
             Value rhs = tostr(s, NULL);
             prob->rhs[j] = rhs;
@@ -203,7 +203,7 @@ int process_file( const char* filename, BP* prob )
 }
 
 
-void checkInputData( char* s, int i, int j, bool rhsIndicator)
+void checkInputData( char* s, int i, int j, bool rhsIndicator, BP* prob)
 {
     int auxCheckData;
     int checkData = sscanf(s, "%d", &auxCheckData);
@@ -216,6 +216,7 @@ void checkInputData( char* s, int i, int j, bool rhsIndicator)
         else {
             fprintf(stderr, "Wrong input data for %d.variable in %d.constraint.\n", i+1, j+1);
         }
+        free_problem(prob);
         exit(1);
     }
 }

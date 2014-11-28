@@ -15,4 +15,7 @@ typedef struct binaryProgram
 /* prints optimizaton problem */
 void print_problem( BP* prob );
 
+/* frees binary program struct data */
+void free_problem(BP* prob);
+
 #endif // _BP_H_
