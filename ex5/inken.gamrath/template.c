@@ -11,7 +11,6 @@ TYPE strtov(char* str, char** test)
 #else
    return strtod(str, test);
 #endif /* #if defined INT */
-   return 0;
 };
 
 int vtostr(char* str, TYPE value)
