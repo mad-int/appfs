@@ -1,0 +1,13 @@
+3 #rows
+3 #cols
+1 2 3 <= 3
+1 2 3 <= 2
+-4 3 -5 <= 5
+#Solution:
+#Skipping the following constraint, since it is always feasible, and decreasing the number of constraints by 1: '-4 3 -5 <= 5' 
+#Reading successful! Starting enumeration now.
+#Preprocessing deleted 1 of 2 constraints.
+#Binary assignment 000 is valid!
+#Binary assignment 100 is valid!
+#Binary assignment 010 is valid!
+#3 feasible solutions found!

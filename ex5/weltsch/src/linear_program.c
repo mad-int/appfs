@@ -12,7 +12,7 @@
 
 #define MAX_LINE_LEN   512  // Maximum input line length
 
-#define GET_SEC(a, b) ((b - a) / (double)CLOCKS_PER_SEC)
+#define GET_SEC(a, b) ((double) (b - a) / (double)CLOCKS_PER_SEC)
 
 /* the file parser can have 3 different states, reading #rows, #cols, or
  * parsing a constraint
@@ -133,6 +133,42 @@ char* parse_type(char* s, int row, LinearProgram* lp) {
     return NULL;
 }
 
+bool can_overflow(LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+
+    for(int r = 0; r < lp->rows; r++)
+    {
+        num_t row_max = 0;
+        num_t row_min = 0;
+
+        for(int c = 0; c < lp->cols; c++)
+        {
+            num_t val = lp->matrix[r][c];
+
+            if (val > 0)
+            {
+                if (row_max < MAX_COEF_VAL - val) {
+                    row_max += val;
+                } else {
+                    fprintf(stderr, "Error: row %d numerical overflow\n", r);
+                    return true;
+                }
+            } else if (val < 0) {
+                if (row_min > MIN_COEF_VAL - val) {
+                    row_min += val;
+                } else {
+                    fprintf(stderr, "Error: row %d numerical negative overflow\n", r);
+                    return true;
+                }
+            } else {
+                assert(val == 0);
+            }
+        }
+    }
+
+    return false;
+}
+
 /* parses a line of the file
  * tries to set the corresponding row in the matrix
  * returns false on error
@@ -145,13 +181,13 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
     int i;
     char* end_ptr;
     for (i = 0; i < lp->cols; i++) {
-        long num = strtol(s, &end_ptr, 10);
+        num_t num = parse_num(s, &end_ptr);
 
         if (!is_num_valid(num, s, end_ptr)) {
             return false;
         }
 
-        lp->matrix[row][i] = (num_t) num;
+        lp->matrix[row][i] = num;
         s = end_ptr;
     }
 
@@ -162,7 +198,7 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
         return false;
     }
 
-    long num = strtol(s, &end_ptr, 10);
+    num_t num = parse_num(s, &end_ptr);
     if (!is_num_valid(num, s, end_ptr)) {
         return false;
     }
@@ -272,6 +308,10 @@ LinearProgram *new_lp_from_file(const char* filename) {
 
     if (constraints != rows) {
         fprintf(stderr, "speciefied #(rows) does not match: %d expected, %d found\n", rows, constraints);
+        return NULL;
+    }
+
+    if (can_overflow(lp)) {
         return NULL;
     }
 
@@ -401,7 +441,7 @@ void print_bin_solutions_lp(LinearProgram* lp) {
 
     double elapsed = GET_SEC(start, clock());
     printf("Checked %lu vectors in %.3f s = %.3f kvecs/s\n",
-            count, elapsed, count / elapsed / 1000.0);
+            count, elapsed, (double) count / elapsed / 1000.0);
 
     deallocate(configuration);
     printf("found %u feasible solutions\n", feasible_solutions);

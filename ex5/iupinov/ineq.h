@@ -59,7 +59,7 @@ struct BinaryVector
 	int variablesCount;
 };
 
-int GetBinaryVectorComponent(const struct BinaryVector *vector, int index);
+int GetBinaryVectorComponent(const struct BinaryVector *vector, const int index);	
 int TestSolutionForConstraint(const struct IneqConstraint *constraint, const struct BinaryVector *solution);
 int TestSolutionForSystem(const struct IneqSystem *system, const struct BinaryVector *solution);
 void PrintSolution(const struct BinaryVector *solution);
