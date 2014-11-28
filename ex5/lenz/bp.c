@@ -38,8 +38,8 @@ void print_problem( BP* prob )
 
 void free_problem(BP* prob)
 {
-   int i;
-   deallocate(prob->rhs);
+    int i;
+    deallocate(prob->rhs);
     deallocate(prob->eq_type);
     for( i = 0; i < prob->nconss; ++i )
     {

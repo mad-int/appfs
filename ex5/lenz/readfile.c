@@ -69,21 +69,20 @@ int process_file( const char* filename, BP* prob )
                 exit(1);
             }
 
-            prob->eq_type = allocate(prob->nvars, sizeof(*(prob->rhs)));
             mode = READ_ROWS;
             break;
 
         case READ_ROWS:
-            prob->nconss = tostr(s, NULL);
+            prob->nconss = tostr(s, &r);
+            assert(prob->nconss > 0);
+            prob->eq_type = allocate(prob->nconss, sizeof(*(prob->eq_type)));
+            assert(prob->eq_type != NULL);
 
             if( prob->nconss <= 0 )
             {
                 fprintf(stderr,"Incompatible number of constraints are specified, %d many constraints.\n", prob->nconss);
                 exit(1);
             }
-
-            /* check if input data for constraints is correct */
-            strtol(s, &r, 10);
 
             while (isspace(*r))
                 r++;
@@ -97,11 +96,7 @@ int process_file( const char* filename, BP* prob )
             /* allocate memory and initialize everything, since we know the number of constraints
             * and vars */
             prob->conss = allocate( prob->nconss, sizeof(*(prob->conss)) );
-            if ( prob->conss == NULL && strpbrk(s, "#\n\r") )
-            {
-                fprintf(stderr, "out of memory\n");
-                return EXIT_FAILURE;
-            }
+
             for( i = 0; i < prob->nconss; ++i )
             {
                 prob->conss[i] = allocate(prob->nvars, sizeof(**(prob->conss)));

@@ -1,4 +1,4 @@
-for file in `ls ../../data/corrupted_* ../../data/error_*`
+for file in `ls ../../data/corrupted_* ../../data/error_* | grep -v "corrupted_onlyColLine.dat"`
 do
   echo "executing file " $file
   ./ex5 $file
