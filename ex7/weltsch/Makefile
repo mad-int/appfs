@@ -5,7 +5,7 @@ WARNINGS = -Wall -Wextra -Wpedantic -Wshadow -Wpointer-arith -Wcast-align \
 			-Wuninitialized -Wconversion -Wbad-function-cast -Wcast-qual
 CFLAGS_MIN = -O3 -std=c99 -DNDEBUG $(WARNINGS)
 CFLAGS = -std=c99 -fprofile-arcs -ftest-coverage $(WARNINGS) -pg
-BIN_SRC = src/allocate.c src/ex5_main.c src/linear_program.c src/num_type.c
+BIN_SRC = src/allocate.c src/ex7_main.c src/linear_program.c src/num_type.c src/read_lp.c
 TEST_SRC = src/allocate.c tests/test_linear_program.c src/num_type.c
 TEST_OUT = test_linear_program
 LFLAGS = -lcmocka

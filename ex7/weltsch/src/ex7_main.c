@@ -2,7 +2,9 @@
 #include <stdlib.h>  // EXIT_*
 #include <string.h>
 #include <assert.h>
+
 #include "linear_program.h"
+#include "read_lp.h"
 
 /** Read textfile, textfile should describe an lp in (FIXME format)
  * the specified format. Prints the integer 0-1 solutions to stdout
