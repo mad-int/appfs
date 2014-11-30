@@ -1,3 +1,6 @@
+#ifndef _NUM_TYPE_H
+#define _NUM_TYPE_H
+
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -25,3 +28,5 @@ num_t parse_num(char* num_str, char** end_ptr);
 bool is_num_valid(num_t num, char* num_str, char* end_str);
 
 void print_num(num_t num);
+
+#endif /* _NUM_TYPE_H */

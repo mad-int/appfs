@@ -6,7 +6,6 @@
 
 #include "allocate.h"
 #include "linear_program.h"
-#include "num_type.h"
 
 #define GET_SEC(a, b) ((double) (b - a) / (double)CLOCKS_PER_SEC)
 
@@ -18,7 +17,42 @@ struct linear_program {
     int* constraint_types;
 };
 
-/* FIXME too simple, are there any other properties to check? */
+bool can_overflow(LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+
+    for(int r = 0; r < lp->rows; r++)
+    {
+        num_t row_max = 0;
+        num_t row_min = 0;
+
+        for(int c = 0; c < lp->cols; c++)
+        {
+            num_t val = lp->matrix[r][c];
+
+            if (val > 0)
+            {
+                if (row_max < MAX_COEF_VAL - val) {
+                    row_max += val;
+                } else {
+                    fprintf(stderr, "Error: row %d numerical overflow\n", r);
+                    return true;
+                }
+            } else if (val < 0) {
+                if (row_min > MIN_COEF_VAL - val) {
+                    row_min += val;
+                } else {
+                    fprintf(stderr, "Error: row %d numerical negative overflow\n", r);
+                    return true;
+                }
+            } else {
+                assert(val == 0);
+            }
+        }
+    }
+
+    return false;
+}
+
 bool lp_is_valid(LinearProgram* lp) {
     if (NULL == lp) {
         return false;

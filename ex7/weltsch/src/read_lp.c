@@ -21,42 +21,6 @@ char* skip_spaces(char* s) {
     return s;
 }
 
-bool can_overflow(LinearProgram* lp) {
-    assert(lp_is_valid(lp));
-
-    for(int r = 0; r < lp->rows; r++)
-    {
-        num_t row_max = 0;
-        num_t row_min = 0;
-
-        for(int c = 0; c < lp->cols; c++)
-        {
-            num_t val = lp->matrix[r][c];
-
-            if (val > 0)
-            {
-                if (row_max < MAX_COEF_VAL - val) {
-                    row_max += val;
-                } else {
-                    fprintf(stderr, "Error: row %d numerical overflow\n", r);
-                    return true;
-                }
-            } else if (val < 0) {
-                if (row_min > MIN_COEF_VAL - val) {
-                    row_min += val;
-                } else {
-                    fprintf(stderr, "Error: row %d numerical negative overflow\n", r);
-                    return true;
-                }
-            } else {
-                assert(val == 0);
-            }
-        }
-    }
-
-    return false;
-}
-
 char* parse_type(char* s, int row, LinearProgram* lp) {
     s = skip_spaces(s);
     if (!*s) {
@@ -66,7 +30,7 @@ char* parse_type(char* s, int row, LinearProgram* lp) {
         if ('=' != *(s+1)) {
             return NULL;
         }
-        lp->constraint_types[row] = LEQ;
+        set_constraint_type(lp, row, LEQ);
         s+=2;
         return s;
     }
@@ -75,7 +39,7 @@ char* parse_type(char* s, int row, LinearProgram* lp) {
         if ('=' != *(s+1)) {
             return NULL;
         }
-        lp->constraint_types[row] = GEQ;
+        set_constraint_type(lp, row, GEQ);
         s+=2;
         return s;
     }
@@ -84,7 +48,7 @@ char* parse_type(char* s, int row, LinearProgram* lp) {
         if ('=' == *(s+1)) {
             s++;
         }
-        lp->constraint_types[row] = EQ;
+        set_constraint_type(lp, row, EQ);
         s++;
         return s;
     }
@@ -102,16 +66,18 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
     assert(row >= 0);
     assert(row < lp->rows);
 
-    int i;
     char* end_ptr;
-    for (i = 0; i < lp->cols; i++) {
+    int cols = get_cols(lp);
+
+    int i;
+    for (i = 0; i < cols; i++) {
         num_t num = parse_num(s, &end_ptr);
 
         if (!is_num_valid(num, s, end_ptr)) {
             return false;
         }
 
-        lp->matrix[row][i] = num;
+        set_coeff(lp, row, i, num);
         s = end_ptr;
     }
 
@@ -134,7 +100,7 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
         return false;
     }
 
-    lp->vector[row] = num;
+    set_rhs(lp, row, num);
 
     assert(lp_is_valid(lp));
     return true;
