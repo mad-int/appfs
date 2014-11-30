@@ -77,7 +77,7 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
             return false;
         }
 
-        set_coeff(lp, row, i, num);
+        set_coef(lp, row, i, num);
         s = end_ptr;
     }
 

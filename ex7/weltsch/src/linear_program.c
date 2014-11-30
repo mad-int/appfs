@@ -110,6 +110,41 @@ void lp_free(LinearProgram* lp) {
     deallocate(lp);
 }
 
+int get_rows(LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    return lp->rows;
+}
+
+int get_cols(LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    return lp->cols;
+}
+
+void set_coef(LinearProgram *lp, int row, int col, num_t val) {
+    assert(lp_is_valid_lp);
+    assert(row >= 0 && row < lp->rows);
+    assert(col >= 0 && col < lp->cols);
+    assert(val <= MAX_COEF_VAL && val >= MIN_COEF_VAL);
+
+    lp->matrix[row][col] = val;
+}
+
+void set_rhs(LinearProgram *lp, int row, num_t val) {
+    assert(lp_is_valid_lp);
+    assert(row >= 0 && row < lp->rows);
+    assert(val <= MAX_COEF_VAL && val >= MIN_COEF_VAL);
+
+    lp->vector[row] = val;
+}
+
+void set_constraint_type(LinearProgram *lp, int row, int type) {
+    assert(lp_is_valid_lp);
+    assert(row >= 0 && row < lp->rows);
+    assert(val <= MAX_COEF_VAL && val >= MIN_COEF_VAL);
+
+    lp->constraint_types[row] = type;
+}
+
 /* print a solution vector */
 void __print_config(num_t* configuration, int len) {
     assert(0 < len);

@@ -24,7 +24,7 @@ extern int get_rows(LinearProgram* lp);
 
 extern int get_cols(LinearProgram* lp);
 
-extern void set_coeff(LinearProgram *lp, int row, int col, num_t val);
+extern void set_coef(LinearProgram *lp, int row, int col, num_t val);
 
 extern void set_rhs(LinearProgram *lp, int row, num_t val);
 
