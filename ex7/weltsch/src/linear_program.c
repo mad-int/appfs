@@ -146,27 +146,27 @@ void set_constraint_type(LinearProgram *lp, int row, int type) {
 }
 
 /* print a solution vector */
-void __print_config(num_t* configuration, int len) {
+void __print_vars(num_t* vars, int len) {
     assert(0 < len);
 
     int j;
     for (j = 0; j < len; j++) {
-        print_num(configuration[j]);
+        print_num(vars[j]);
     }
 
     printf("\n");
 }
 
 /* return the lexicographically next 0-1 vector */
-void next_configuration(num_t* configuration, int len) {
+void next_vars(num_t* vars, int len) {
     assert(0 < len);
 
     int i;
     for (i = 0; i < len; i++) {
-        if (configuration[i]) {
-            configuration[i] = 0;
+        if (vars[i]) {
+            vars[i] = 0;
         } else {
-            configuration[i] = 1;
+            vars[i] = 1;
             break;
         }
     }
@@ -188,14 +188,14 @@ bool __is_feasible_sum(num_t sum, int row, LinearProgram* lp) {
 }
 
 /* check if a vector is a feasible solution to the lp */
-bool is_feasible(num_t* configuration, LinearProgram* lp) {
+bool is_feasible(num_t* vars, LinearProgram* lp) {
     assert(lp_is_valid(lp));
 
     int i, j;
     for (i = 0; i < lp->rows; i++) {
         num_t sum = 0;
         for (j = 0; j < lp->cols; j++) {
-            sum += configuration[j] * lp->matrix[i][j];
+            sum += vars[j] * lp->matrix[i][j];
         }
 
         if (!__is_feasible_sum(sum, i, lp)) {
@@ -244,7 +244,7 @@ void print_matrix(LinearProgram* lp) {
 
 /* print all 0-1 solutions to the lp into the outstream */
 void print_bin_solutions_lp(LinearProgram* lp) {
-    num_t* configuration = allocate(lp->cols, sizeof(*configuration));
+    num_t* vars = allocate(lp->cols, sizeof(*vars));
     unsigned long count = 1UL << lp->cols;
     unsigned int feasible_solutions = 0;
 
@@ -255,17 +255,17 @@ void print_bin_solutions_lp(LinearProgram* lp) {
 
     unsigned int i;
     for (i = 0; i < count; i++) {
-        if (is_feasible(configuration, lp)) {
-            __print_config(configuration, lp->cols);
+        if (is_feasible(vars, lp)) {
+            __print_vars(vars, lp->cols);
             feasible_solutions++;
         }
-        next_configuration(configuration, lp->cols);
+        next_vars(vars, lp->cols);
     }
 
     double elapsed = GET_SEC(start, clock());
     printf("Checked %lu vectors in %.3f s = %.3f kvecs/s\n",
             count, elapsed, (double) count / elapsed / 1000.0);
 
-    deallocate(configuration);
+    deallocate(vars);
     printf("found %u feasible solutions\n", feasible_solutions);
 }
