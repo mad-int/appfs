@@ -24,7 +24,7 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
    char* tok;
    char delimiter[2] = " ";
    char* test;
-   char relation[3];
+   char relation[3] = "";
    int lines = 0;
    int m = -1;
    int n = -1;
@@ -171,7 +171,7 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
 
             /* copy relation operator */
             assert(strlen(tok) <= 2);
-            strncpy(relation, tok, sizeof(relation));
+            strncpy(relation, tok, sizeof(relation)-1);
 
             /* get next token, which is right-hand side */
             tok = strtok(NULL, delimiter);
@@ -250,6 +250,7 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
 
    if (bp_getM(*bp) + bp_getRedundant(*bp) < m)
    {
+      printf("%i + %i < %i\n", bp_getM(*bp), bp_getRedundant(*bp), m);
       fprintf(stderr, "Not enough rows.\n");
       fclose(fp);
       return BP_INVALIDDATA;

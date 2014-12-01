@@ -5,6 +5,7 @@
 #include <string.h> //TODO kann wieder raus
 
 #include "allocate.h"
+#include "misc.h"
 #include "bp.h"
 
 // #define DEBUG
@@ -132,152 +133,159 @@ BP_RETCODE bp_put(BinaryProgram* bp, TYPE* coefs, TYPE rhs)
    {
       if ((rhs == 0 && bp->rhs[i] == 0) || (rhs != 0 && bp->rhs[i] != 0))
       {
-         double c = 0;
+         double quotposmax = 0;
+         double quotposmin = 0;
+         double quotnegmax = 0;
+         double quotnegmin = 0;
+         double quot = 0;
          int dom = 0;
-         bool set = false;
 
          int j = 0;
          for (; j < bp->n; j++)
          {
-//             if ((coefs[j] != 0 && bp->coefs[i*bp->n+j] == 0) || (coefs[j] == 0 && bp->coefs[i*bp->n+j] != 0))
-//                break;
-            if (coefs[j] != 0 && bp->coefs[i*bp->n+j] == 0)
-            {
-               if (dom == 1)
-                  break;
-               dom = -1;
+            /* nothing to do, when both coefficients are zero */
+            if (coefs[j] == 0 && bp->coefs[j] == 0)
                continue;
-            }
-            if (coefs[j] == 0 && bp->coefs[i*bp->n+j] != 0)
+            /* break, when one coefficient is zero and the other is negative */
+            else if ((coefs[j] == 0 && bp->coefs[j] < 0) || (coefs[j] < 0 && bp->coefs[j] == 0))
+               break;
+            /* only stored constraint can dominates new one, when coefficient of new one is zero */
+            else if (coefs[j] == 0 && bp->coefs[j] > 0)
             {
-               if (dom == -1)
+               if (dom == -1 || quot != 0)
                   break;
                dom = 1;
-               continue;
             }
-            if (coefs[j] != 0 && bp->coefs[i*bp->n+j] != 0)
+            /* only new constraint can dominates stored one, when coefficient of stored one is zero */
+            else if (coefs[j] > 0 && bp->coefs[j] == 0)
             {
-               if (!set)
-               {
+               if (dom == 1 || quot != 0)
+                  break;
+               dom = -1;
+            }
+            else
+            {
+               assert(coefs[j] != 0);
+               assert(bp->coefs[j] != 0);
+               double q = coefs[j] / bp->coefs[i*bp->n+j];
 
-//                   if (coefs[j] < 0)
-//                      c = bp->coefs[i*bp->n+j] / coefs[j];
-//                   else
-                     c = coefs[j] / bp->coefs[i*bp->n+j];
-                  if (c < 0 && dom != 0)
-                     break;
-                  set = true;
-               }
-               else
+               /* compute quotient for positive coefficients */
+               if (coefs[j] > 0 && bp->coefs[i*bp->n+j] > 0)
                {
-                  if (c < 0)
+                  if (quot != 0)
+                     break;
+                  if (quotposmax == 0)
                   {
-                     if (dom != 0 || abs(c - coefs[j] / bp->coefs[i*bp->n+j]) > EPSILON)
-                        break;
+                     assert(quotposmin == 0);
+                     quotposmax = q;
+                     quotposmin = q;
                   }
                   else
                   {
-                     double quot;
-//                      if(coefs[j] < 0)
-//                         quot = bp->coefs[i*bp->n+j] / coefs[j];
-//                      else
-                        quot = coefs[j] / bp->coefs[i*bp->n+j];
-
-                     if (quot < 0)
-                        break;
-//                      printf("dom: %i, quot: %f, c: %f\n", dom, quot, c);
-                     /* quot greater than c */
-                     if (quot - c > EPSILON)
-                     {
-                        if (rhs == 0 || bp->rhs[i] == 0)
-                           break;
-                        /* new constraint dominates stored constraint */
-                        if (rhs / c <= bp->rhs[i])
-                        {
-                           if (dom == 1)
-                              break;
-                           dom = -1;
-                           if( rhs < 0 && bp->rhs[i] < 0 )
-                              c = quot;
-                        }
-                        /* stored constraint dominates new constraint */
-                        else if (rhs / quot >= bp->rhs[i])
-                        {
-                           if (dom == -1)
-                              break;
-                           dom = 1;
-                           if( rhs > 0 || bp->rhs[i] > 0 )
-                              c = quot;
-                        }
-                        else
-                           break;
-                     }
-                     /* c greater than quot */
-                     else if (quot - c < -EPSILON)
-                     {
-                        if (rhs == 0 || bp->rhs[i] == 0)
-                           break;
-                        /* new constraint dominates stored constraint */
-                        if (rhs / quot <= bp->rhs[i])
-                        {
-                           if (dom == 1)
-                              break;
-                           dom = -1;
-                           if( rhs > 0 || bp->rhs[i] > 0 )
-                              c = quot;
-                        }
-                        /* stored constraint dominates new constraint */
-                        else if (rhs  / c >= bp->rhs[i])
-                        {
-                           if (dom == -1)
-                              break;
-                           dom = 1;
-                           if( rhs < 0 && bp->rhs[i] < 0 )
-                              c = quot;
-                        }
-                        else
-                           break;
-                     }
-//                      if (abs(c - coefs[j] / bp->coefs[i*bp->n+j]) > EPSILON)
-//                         break;
+                     quotposmax = MAX(quotposmax, q);
+                     quotposmin = MIN(quotposmin, q);
                   }
+                  if (quotnegmax != 0 && ((dom == 1 && quotposmax > quotnegmin) || (dom == -1 && quotposmin > quotnegmax)))
+                     break;
                }
+               /* compute quotient for negative coefficients */
+               else if (coefs[j] < 0 && bp->coefs[i*bp->n+j] < 0)
+               {
+                  if (quot != 0)
+                     break;
+                  if (quotnegmax == 0)
+                  {
+                     assert(quotnegmin == 0);
+                     quotnegmax = q;
+                     quotnegmin = q;
+                  }
+                  else
+                  {
+                     quotnegmax = MAX(quotnegmax, q);
+                     quotnegmin = MIN(quotnegmin, q);
+                  }
+                  if (quotposmax != 0 && ((dom == 1 && quotposmax > quotnegmin) || (dom == -1 && quotposmin > quotnegmax)))
+                     break;
+               }
+               /* compute quotient for coefficients with different sign */
+               else
+               {
+                  if (quotnegmax != 0 || quotposmax != 0 || dom != 0)
+                     break;
+                  if (quot == 0)
+                     quot = q;
+                  else if (abs(quot) - abs(q) < EPSILON )
+                     break;
+               }
+               if (quotposmax == 0 && quotnegmax == 0)
+                  continue;
+               if (quotposmax != 0 && quotnegmax != 0 && (quotposmax > quotnegmin || quotposmin < quotnegmax))
+                  break;
+               if (quotposmax != 0 || quotnegmax != 0)
+               {
+                  /* check whether stored constraint dominates new one */
+                  if ((quotposmax > 0 && rhs >= bp->rhs[i] * quotposmax) || (quotposmax == 0 && rhs >= bp->rhs[i] * quotnegmin))
+                  {
+                     if (dom == -1)
+                        break;
+                     dom = 1;
+                  }
+                  /* check whether new constraint dominates stored one */
+                  else if ((quotposmin > 0 && rhs <= bp->rhs[i] * quotposmin) || (quotposmin == 0 && rhs <= bp->rhs[i] * quotnegmax))
+                  {
+                     if (dom == 1)
+                        break;
+                     dom = -1;
+                  }
+                  /* none of the two constraints is dominating */
+                  else
+                     break;
+               }
+               /* should be dead code */
+               if (dom != 0 && quot != 0)
+                  break;
             }
          }
-
-         if (j == bp->n && set)
+         if (j == bp->n)
          {
-            if (c < 0)
+            assert( quotposmax != 0 || quotnegmax != 0 || quot != 0);
+            if (quot != 0)
             {
-               if (rhs / c + bp->rhs[i] < -EPSILON)
+               if (rhs / quot + bp->rhs[i] < -EPSILON && dom == 0)
                   return BP_INFEASIBLE;
             }
             else
             {
-               assert(c > 0);
-               if (dom == 0)
+               if (quotposmax == quotposmin && quotnegmax == quotnegmin)
                {
-//                   printf("rhs(old): %f, rhs(new): %f\n", bp->rhs[i], (TYPE)(rhs / c));
-                  bp->rhs[i] = MIN(bp->rhs[i], (TYPE)(rhs / c));
-//                   printf("new rhs (%f)\n", (double)(bp->rhs[i]));
-               }
-               /* stored constraint dominates new constraint */
-               else if (dom == 1)
-               {
-                  if (bp->rhs[i] > rhs / c)
+                  assert(quotposmax != 0 || quotnegmax != 0);
+                  assert(quotposmax == quotnegmax || quotposmax == 0 || quotnegmax == 0);
+                  if (dom == 0)
+                     bp->rhs[i] = MIN(bp->rhs[i], (TYPE)(rhs / quotposmax));
+                  else if (dom == -1)
+                  {
+                     if ((quotposmin > 0 && rhs > bp->rhs[i] * quotposmin) || (quotposmin == 0 && rhs > bp->rhs[i] * quotnegmax))
+                        continue;
+                     for (int k= 0; k < bp->n; k++)
+                        bp->coefs[i*bp->n+k] = coefs[k];
+                     bp->rhs[i] = rhs;
+                  }
+                  else if ((quotposmax > 0 && rhs < bp->rhs[i] * quotposmax) || (quotposmax == 0 && rhs < bp->rhs[i] * quotnegmin))
                      continue;
-//                   printf("old(%i) |> new (%f)\n", i, c);
-
                }
-               /* new constraint dominates stored constraint */
-               else if (dom == -1)
+               else
                {
-                  if (bp->rhs[i] < rhs / c)
+                  assert(dom != 0);
+                  if (dom == -1)
+                  {
+                     if ((quotposmin > 0 && rhs > bp->rhs[i] * quotposmin) || (quotposmin == 0 && rhs > bp->rhs[i] * quotnegmax))
+                        continue;
+                     for (int k= 0; k < bp->n; k++)
+                        bp->coefs[i*bp->n+k] = coefs[k];
+                     bp->rhs[i] = rhs;
+                  }
+                  else if ((quotposmax > 0 && rhs < bp->rhs[i] * quotposmax) || (quotposmax == 0 && rhs < bp->rhs[i] * quotnegmin))
                      continue;
-//                   printf("new |> old(%i) (%f)\n", i, c);
-                  for (int k= 0; k < bp->n; k++)
-                     bp->coefs[i*bp->n+k] = coefs[k];
-                  bp->rhs[i] = rhs;
                }
 #ifdef MORE_DEBUG
                printf("redundant constraint.\n");
@@ -449,6 +457,7 @@ BP_RETCODE solveBP(BinaryProgram* bp, FILE* fp)
 
    return BP_INFEASIBLE;
 }
+
 #else
 /* solves the BP with Branching
  * returns BP_OKAY, if a solution is found
@@ -492,7 +501,6 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
 #endif
    int depth = 0;
 
-
    /* initialize min, max and lhs */
    for (int i = 0; i < bp->m; i++)
    {
@@ -515,9 +523,12 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
    sol = allocate(2*bp->n, sizeof(*sol));
 #endif
 
+   /* add coefficients of first variable to fixing */
+   for (int i = 0; i < bp->m; i++)
+      lhs[i] += bp->coefs[i*bp->n+0];
    /* branch on first variable => false */
 #ifdef DEBUG
-   sprintf(sol, "0");
+   sprintf(sol, "1");
 #endif
 #ifdef CUTOFF
    count += branch(fp, bp, lhs, min, max, depth+1, sol);
@@ -525,13 +536,13 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
    count += branch(fp, bp, lhs, NULL, NULL, depth+1, sol);
 #endif
 
-   /* add coefficients of first variable to fixing */
+   /* remove coefficients of first variable to fixing */
    for (int i = 0; i < bp->m; i++)
-      lhs[i] += bp->coefs[i*bp->n+0];
+      lhs[i] -= bp->coefs[i*bp->n+0];
 
    /* branch on first variable => true */
 #ifdef DEBUG
-   sprintf(sol, "1");
+   sprintf(sol, "0");
 #endif
 #ifdef CUTOFF
    count += branch(fp, bp, lhs, min, max, depth+1, sol);
@@ -652,51 +663,55 @@ int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int dep
 
       /* update min and max */
 #ifdef CUTOFF
-      TYPE* bmax = allocate(bp->m, sizeof(*bmax));
-      TYPE* bmin = allocate(bp->m, sizeof(*bmin));
       for (i = 0; i < bp->m; i++)
       {
-         bmax[i] = max[i] - MAX(bp->coefs[i*bp->n+depth], 0.0);
-         bmin[i] = min[i] - MIN(bp->coefs[i*bp->n+depth], 0.0);
+         max[i] -= MAX(bp->coefs[i*bp->n+depth], 0.0);
+         min[i] -= MIN(bp->coefs[i*bp->n+depth], 0.0);
       }
 #endif /* CUTOFF */
 
-      /* branch on variable => false */
 #ifdef DEBUG
       bsol = allocate(2*bp->n, sizeof(*bsol));
-      i = sprintf(bsol, "%s 0", sol);
-      assert(i < 2*bp->n);
 #endif /* DEBUG */
-#ifdef CUTOFF
-      count += branch(fp, bp, lhs, bmin, bmax, depth+1, bsol);
-#else /* CUTOFF */
-      count += branch(fp, bp, lhs, NULL, NULL, depth+1, bsol);
-#endif /* CUTOFF */
-      /* update fixations */
-      TYPE* blhs = allocate(bp->m, sizeof(*blhs));
-      for (i = 0; i < bp->m; i++)
-         blhs[i] = lhs[i] + bp->coefs[i*bp->n+depth];
-
-      /* branch on variable => true */
+      /* add coefficients of first variable to fixing */
+      for (int i = 0; i < bp->m; i++)
+         lhs[i] += bp->coefs[i*bp->n+depth];
+      /* branch on first variable => false */
 #ifdef DEBUG
       i = sprintf(bsol, "%s 1", sol);
       assert(i < 2*bp->n);
 #endif /* DEBUG */
 #ifdef CUTOFF
-      count += branch(fp, bp, blhs, bmin, bmax, depth+1, bsol);
+      count += branch(fp, bp, lhs, min, max, depth+1, bsol);
 #else /* CUTOFF */
-      count += branch(fp, bp, blhs, NULL, NULL, depth+1, bsol);
+      count += branch(fp, bp, lhs, NULL, NULL, depth+1, bsol);
 #endif /* CUTOFF */
-      deallocate(blhs);
+
+      /* remove coefficients of first variable to fixing */
+      for (int i = 0; i < bp->m; i++)
+         lhs[i] -= bp->coefs[i*bp->n+depth];
+
+   /* branch on first variable => true */
+#ifdef DEBUG
+      i = sprintf(bsol, "%s 0", sol);
+      assert(i < 2*bp->n);
+#endif /* DEBUG */
+#ifdef CUTOFF
+      count += branch(fp, bp, lhs, min, max, depth+1, bsol);
+#else /* CUTOFF */
+      count += branch(fp, bp, lhs, NULL, NULL, depth+1, bsol);
+#endif /* CUTOFF */
+      /* update min and max */
+#ifdef CUTOFF
+      for (i = 0; i < bp->m; i++)
+      {
+         max[i] += MAX(bp->coefs[i*bp->n+depth], 0.0);
+         min[i] += MIN(bp->coefs[i*bp->n+depth], 0.0);
+      }
+#endif /* CUTOFF */
 #ifdef DEBUG
       deallocate(bsol);
 #endif /* DEBUG */
-
-      /* free cut-off variables */
-#ifdef CUTOFF
-      deallocate(bmin);
-      deallocate(bmax);
-#endif /* CUTOFF */
    }
 
    return count;
