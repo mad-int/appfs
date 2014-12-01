@@ -221,7 +221,6 @@ BP_RETCODE bp_put(BinaryProgram* bp, TYPE* coefs, TYPE rhs)
                   continue;
                if (quotposmax != 0 && quotnegmax != 0 && (quotposmax > quotnegmin || quotposmin < quotnegmax))
                   break;
-               //TODO
                if (quotposmax != 0 || quotnegmax != 0)
                {
                   /* check whether stored constraint dominates new one */
@@ -458,6 +457,7 @@ BP_RETCODE solveBP(BinaryProgram* bp, FILE* fp)
 
    return BP_INFEASIBLE;
 }
+
 #else
 /* solves the BP with Branching
  * returns BP_OKAY, if a solution is found
@@ -501,7 +501,6 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
 #endif
    int depth = 0;
 
-
    /* initialize min, max and lhs */
    for (int i = 0; i < bp->m; i++)
    {
@@ -524,9 +523,12 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
    sol = allocate(2*bp->n, sizeof(*sol));
 #endif
 
+   /* add coefficients of first variable to fixing */
+   for (int i = 0; i < bp->m; i++)
+      lhs[i] += bp->coefs[i*bp->n+0];
    /* branch on first variable => false */
 #ifdef DEBUG
-   sprintf(sol, "0");
+   sprintf(sol, "1");
 #endif
 #ifdef CUTOFF
    count += branch(fp, bp, lhs, min, max, depth+1, sol);
@@ -534,13 +536,13 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
    count += branch(fp, bp, lhs, NULL, NULL, depth+1, sol);
 #endif
 
-   /* add coefficients of first variable to fixing */
+   /* remove coefficients of first variable to fixing */
    for (int i = 0; i < bp->m; i++)
-      lhs[i] += bp->coefs[i*bp->n+0];
+      lhs[i] -= bp->coefs[i*bp->n+0];
 
    /* branch on first variable => true */
 #ifdef DEBUG
-   sprintf(sol, "1");
+   sprintf(sol, "0");
 #endif
 #ifdef CUTOFF
    count += branch(fp, bp, lhs, min, max, depth+1, sol);
@@ -661,51 +663,55 @@ int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int dep
 
       /* update min and max */
 #ifdef CUTOFF
-      TYPE* bmax = allocate(bp->m, sizeof(*bmax));
-      TYPE* bmin = allocate(bp->m, sizeof(*bmin));
       for (i = 0; i < bp->m; i++)
       {
-         bmax[i] = max[i] - MAX(bp->coefs[i*bp->n+depth], 0.0);
-         bmin[i] = min[i] - MIN(bp->coefs[i*bp->n+depth], 0.0);
+         max[i] -= MAX(bp->coefs[i*bp->n+depth], 0.0);
+         min[i] -= MIN(bp->coefs[i*bp->n+depth], 0.0);
       }
 #endif /* CUTOFF */
 
-      /* branch on variable => false */
 #ifdef DEBUG
       bsol = allocate(2*bp->n, sizeof(*bsol));
-      i = sprintf(bsol, "%s 0", sol);
-      assert(i < 2*bp->n);
 #endif /* DEBUG */
-#ifdef CUTOFF
-      count += branch(fp, bp, lhs, bmin, bmax, depth+1, bsol);
-#else /* CUTOFF */
-      count += branch(fp, bp, lhs, NULL, NULL, depth+1, bsol);
-#endif /* CUTOFF */
-      /* update fixations */
-      TYPE* blhs = allocate(bp->m, sizeof(*blhs));
-      for (i = 0; i < bp->m; i++)
-         blhs[i] = lhs[i] + bp->coefs[i*bp->n+depth];
-
-      /* branch on variable => true */
+      /* add coefficients of first variable to fixing */
+      for (int i = 0; i < bp->m; i++)
+         lhs[i] += bp->coefs[i*bp->n+depth];
+      /* branch on first variable => false */
 #ifdef DEBUG
       i = sprintf(bsol, "%s 1", sol);
       assert(i < 2*bp->n);
 #endif /* DEBUG */
 #ifdef CUTOFF
-      count += branch(fp, bp, blhs, bmin, bmax, depth+1, bsol);
+      count += branch(fp, bp, lhs, min, max, depth+1, bsol);
 #else /* CUTOFF */
-      count += branch(fp, bp, blhs, NULL, NULL, depth+1, bsol);
+      count += branch(fp, bp, lhs, NULL, NULL, depth+1, bsol);
 #endif /* CUTOFF */
-      deallocate(blhs);
+
+      /* remove coefficients of first variable to fixing */
+      for (int i = 0; i < bp->m; i++)
+         lhs[i] -= bp->coefs[i*bp->n+depth];
+
+   /* branch on first variable => true */
+#ifdef DEBUG
+      i = sprintf(bsol, "%s 0", sol);
+      assert(i < 2*bp->n);
+#endif /* DEBUG */
+#ifdef CUTOFF
+      count += branch(fp, bp, lhs, min, max, depth+1, bsol);
+#else /* CUTOFF */
+      count += branch(fp, bp, lhs, NULL, NULL, depth+1, bsol);
+#endif /* CUTOFF */
+      /* update min and max */
+#ifdef CUTOFF
+      for (i = 0; i < bp->m; i++)
+      {
+         max[i] += MAX(bp->coefs[i*bp->n+depth], 0.0);
+         min[i] += MIN(bp->coefs[i*bp->n+depth], 0.0);
+      }
+#endif /* CUTOFF */
 #ifdef DEBUG
       deallocate(bsol);
 #endif /* DEBUG */
-
-      /* free cut-off variables */
-#ifdef CUTOFF
-      deallocate(bmin);
-      deallocate(bmax);
-#endif /* CUTOFF */
    }
 
    return count;
