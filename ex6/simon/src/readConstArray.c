@@ -123,7 +123,7 @@ int read_constArray_from_file(const char* filename, ConstArray** cA) {
                 readError = 1;
                 continue;
             }
-            printf("nConstraints %i\n", nConstraints);
+
         }
 
         dimensionIndex = 0;
@@ -262,6 +262,7 @@ int read_constArray_from_file(const char* filename, ConstArray** cA) {
     deallocate(lineCopy);
 
     if (readError) {
+
         freeConstArray(c);
         if (NULL != coeffs) {
             deallocate(coeffs);
