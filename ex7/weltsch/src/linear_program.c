@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -145,31 +146,29 @@ void set_constraint_type(LinearProgram *lp, int row, int type) {
     lp->constraint_types[row] = type;
 }
 
+/* return nth greycode */
+uint64_t next_vars(uint64_t n) {
+    return n ^ n >> 1;
+}
+
+bool __get_nth_bit(uint64_t bits, int n) {
+    assert(n >= 0);
+    assert(n < 64);
+
+    return 0 != (1u & bits >> n);
+}
+
 /* print a solution vector */
-void __print_vars(num_t* vars, int len) {
+void __print_vars(uint64_t vars, int len) {
     assert(0 < len);
+    assert(len < 64);
 
     int j;
     for (j = 0; j < len; j++) {
-        print_num(vars[j]);
+        printf("%d ", __get_nth_bit(vars, j));
     }
 
     printf("\n");
-}
-
-/* return the lexicographically next 0-1 vector */
-void next_vars(num_t* vars, int len) {
-    assert(0 < len);
-
-    int i;
-    for (i = 0; i < len; i++) {
-        if (vars[i]) {
-            vars[i] = 0;
-        } else {
-            vars[i] = 1;
-            break;
-        }
-    }
 }
 
 bool __is_feasible_sum(num_t sum, int row, LinearProgram* lp) {
@@ -188,14 +187,16 @@ bool __is_feasible_sum(num_t sum, int row, LinearProgram* lp) {
 }
 
 /* check if a vector is a feasible solution to the lp */
-bool is_feasible(num_t* vars, LinearProgram* lp) {
+bool is_feasible(uint64_t vars, LinearProgram* lp) {
     assert(lp_is_valid(lp));
 
     int i, j;
     for (i = 0; i < lp->rows; i++) {
         num_t sum = 0;
         for (j = 0; j < lp->cols; j++) {
-            sum += vars[j] * lp->matrix[i][j];
+            if (__get_nth_bit(vars, j)) {
+                sum += lp->matrix[i][j];
+            }
         }
 
         if (!__is_feasible_sum(sum, i, lp)) {
@@ -244,28 +245,27 @@ void print_matrix(LinearProgram* lp) {
 
 /* print all 0-1 solutions to the lp into the outstream */
 void print_bin_solutions_lp(LinearProgram* lp) {
-    num_t* vars = allocate(lp->cols, sizeof(*vars));
-    unsigned long count = 1UL << lp->cols;
-    unsigned int feasible_solutions = 0;
+    uint64_t vars = 0;
+    uint64_t count = 1UL << lp->cols;
+    uint64_t feasible_solutions = 0;
 
     print_matrix(lp);
     printf("\n");
 
     clock_t start = clock();
 
-    unsigned int i;
+    uint64_t i;
     for (i = 0; i < count; i++) {
+        vars = next_vars(i);
         if (is_feasible(vars, lp)) {
             __print_vars(vars, lp->cols);
             feasible_solutions++;
         }
-        next_vars(vars, lp->cols);
     }
 
     double elapsed = GET_SEC(start, clock());
     printf("Checked %lu vectors in %.3f s = %.3f kvecs/s\n",
             count, elapsed, (double) count / elapsed / 1000.0);
 
-    deallocate(vars);
-    printf("found %u feasible solutions\n", feasible_solutions);
+    printf("found %lu feasible solutions\n", feasible_solutions);
 }
