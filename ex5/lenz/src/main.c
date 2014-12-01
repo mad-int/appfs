@@ -6,10 +6,11 @@
 
 #include "allocate.h"
 #include "readfile.h"
+#include "solutions.h"
+#include "bp.h"
 
 int main(int argc, char** argv)
 {
-    int i;
     if (argc < 2 || strlen(argv[1]) <= 0)
     {
         fprintf(stderr, "usage: %s filename", argv[0]);
@@ -20,18 +21,11 @@ int main(int argc, char** argv)
     prob = allocate(1, sizeof(*prob));
 
     process_file( argv[1], prob );
-    print_problem( prob );
+//     print_problem( prob );
     find_binary_solutions( prob );
 
     /* free memory */
-    deallocate(prob->rhs);
-    deallocate(prob->eq_type);
-    for( i = 0; i < prob->nconss; ++i )
-    {
-        deallocate(prob->conss[i]);
-    }
-    deallocate(prob->conss);
-    deallocate(prob);
+    free_problem( prob );
 
     return EXIT_SUCCESS;
 }

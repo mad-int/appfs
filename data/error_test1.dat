@@ -1,6 +1,6 @@
 # too many entries in a line
-3 #rows
 3 #cols
+3 #rows
 1 2 3 <= 3 2
 1 2 3 <= 2
 -4 3 -5 <= 5

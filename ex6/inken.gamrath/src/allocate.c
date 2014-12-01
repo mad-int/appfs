@@ -3,6 +3,10 @@
 #include <assert.h>
 #include "allocate.h"
 
+#ifdef USE_MSHELL
+#include "mshell.h"
+#endif
+
 void* allocate(int elems, int size)
   {
    void* p;

@@ -1,6 +1,6 @@
-# wrong column number format
-3 #rows
-3as #cols
+# wrong row number format
+3 #cols
+3as #rows
 1 2 3 <= 3
 1 2 3 <= 2
 -4 3 -5 <= 5
