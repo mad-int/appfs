@@ -2,6 +2,7 @@
 #define _LINEAR_PROGRAM_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "num_type.h"
 
@@ -18,7 +19,9 @@ extern LinearProgram* lp_new(int rows, int cols);
 
 extern void lp_free(LinearProgram* lp);
 
-extern void print_bin_solutions_lp(LinearProgram* lp);
+extern uint64_t get_bin_solutions_lp(LinearProgram* lp);
+
+extern void print_matrix(LinearProgram* lp);
 
 extern int get_rows(LinearProgram* lp);
 

@@ -244,13 +244,10 @@ void print_matrix(LinearProgram* lp) {
 }
 
 /* print all 0-1 solutions to the lp into the outstream */
-void print_bin_solutions_lp(LinearProgram* lp) {
+uint64_t get_bin_solutions_lp(LinearProgram* lp) {
     uint64_t vars = 0;
     uint64_t count = 1UL << lp->cols;
     uint64_t feasible_solutions = 0;
-
-    print_matrix(lp);
-    printf("\n");
 
     clock_t start = clock();
 
@@ -267,5 +264,5 @@ void print_bin_solutions_lp(LinearProgram* lp) {
     printf("Checked %lu vectors in %.3f s = %.3f kvecs/s\n",
             count, elapsed, (double) count / elapsed / 1000.0);
 
-    printf("found %lu feasible solutions\n", feasible_solutions);
+    return feasible_solutions;
 }

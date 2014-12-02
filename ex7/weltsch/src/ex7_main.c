@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>   // fopen
 #include <stdlib.h>  // EXIT_*
 #include <string.h>
@@ -19,7 +20,11 @@ int solve_lp(const char *filename) {
         return EXIT_FAILURE;
     }
 
-    print_bin_solutions_lp(lp);
+    print_matrix(lp);
+
+    uint64_t sols = get_bin_solutions_lp(lp);
+
+    printf("found %lu feasible solutions\n", sols);
 
     lp_free(lp);
 
