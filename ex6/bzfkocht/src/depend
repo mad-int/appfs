@@ -1,0 +1,5 @@
+$(OBJDIR)/ex6.o: src/ex6.c src/mshell.h src/bip.h src/enum_basic.h
+$(OBJDIR)/bip.o: src/bip.c src/mshell.h src/splitline.h src/bip.h
+$(OBJDIR)/enum_basic.o: src/enum_basic.c src/mshell.h src/bip.h src/enum_basic.h
+$(OBJDIR)/splitline.o: src/splitline.c src/mshell.h src/splitline.h
+$(OBJDIR)/mshell.o: src/mshell.c src/lint.h src/mshell.h
