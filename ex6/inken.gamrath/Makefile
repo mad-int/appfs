@@ -5,6 +5,7 @@
 SHELL		=	/bin/bash
 
 OPT		=	opt
+EX		=	ex6
 
 WFLAGS		=	-Wextra -Wpedantic -Wuninitialized -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-overflow=0 -Wstrict-overflow=1 -Wstrict-overflow=2 -Wstrict-overflow=3 -Wstrict-overflow=4 -Wstrict-overflow=5
 #-Wfloat-equal
@@ -13,18 +14,29 @@ CC		=	gcc -Wall -Werror -fprofile-arcs -ftest-coverage $(WFLAGS)
 
 CXX		=	g++ -Wall -Werror -fprofile-arcs -ftest-coverage $(WFLAGS)
 
-OBJDIR		=	obj
-BINDIR		=	bin
-SRCDIR		=	src
+ARCH		:=	$(shell uname -m | \
+			sed \
+			-e 's/sun../sparc/' \
+			-e 's/i.86/x86/' \
+			-e 's/i86pc/x86/' \
+			-e 's/[0-9]86/x86/' \
+			-e 's/amd64/x86_64/' \
+			-e 's/IP../mips/' \
+			-e 's/9000..../hppa/' \
+			-e 's/Power\ Macintosh/ppc/' \
+			-e 's/00........../pwr4/'\
+			-e 's/arm.*/arm/')
+OSTYPE		:=	$(shell uname -s | tr '[:upper:]' '[:lower:]' | \
+			sed \
+			-e 's/cygwin.*/cygwin/' \
+			-e 's/irix../irix/' \
+			-e 's/windows.*/windows/' \
+			-e 's/mingw.*/mingw/')
 
-ifeq ($(OPT),opt)
-MAKE		=	-O3
-else
 ifeq ($(OPT),dbg)
 MAKE		=	-g
 else
-MAKE		=	-O
-endif
+MAKE		=	-O3
 endif
 
 BRANCHING	=	true
@@ -41,15 +53,28 @@ CFLAGS		+=	-D DOUBLE
 #endif
 endif
 
-ifeq ($(CUTOFF),true)
-CFLAGS		+=	-D CUTOFF
-endif
+BASE		=	$(TYPE).$(OPT)
 
 ifeq ($(BRANCHING),true)
 CFLAGS		+=	-D BRANCHING
+BASE		+=	.branching
 endif
 
-MAINNAME	=	ex6
+ifeq ($(CUTOFF),true)
+CFLAGS		+=	-D CUTOFF
+ifeq ($(BRANCHING),true)
+BASE		+=	.cutoff
+endif
+endif
+
+BASE		+=	.$(OPT)
+
+OBJDIR		=	obj/O.$(BASE)
+BINDIR		=	bin
+SRCDIR		=	src
+
+
+MAINNAME	=	$(EX).$(BASE)
 
 
 CMAINOBJ	=	allocate.o \
@@ -67,7 +92,7 @@ TEST		=	big
 #-----------------------------------------------------------------------------
 
 .PHONY: all
-all:		ex6
+all:		$(EX)
 
 $(OBJDIR):
 		@-mkdir -p $(OBJDIR)
@@ -79,11 +104,12 @@ $(OBJDIR)/%.o:	$(SRCDIR)/%.c
 		@echo "-> compiling $@"
 		@$(CC) -std=c99 $(MAKE) $(CFLAGS) -I $(SRCDIR) -c $< -o $@
 
-.PHONY: ex6
-ex6:		$(OBJDIR) $(BINDIR) $(MAINOBJFILES)
+.PHONY: $(EX)
+$(EX):		$(OBJDIR) $(BINDIR) $(MAINOBJFILES)
 		@echo "-> linking $@"
 		@$(CXX) $(MAKE) $(CFLAGS) -mtune=native -fomit-frame-pointer -m64 $(MAINOBJFILES) -o $(BINDIR)/$(MAINNAME)
-		ln -sf $(BINDIR)/$(MAINNAME) ex6
+		ln -sf $(BINDIR)/$(MAINNAME) $(BINDIR)/$(EX)
+		ln -sf $(BINDIR)/$(EX) $(EX)
 
 .PHONY: clean
 clean:		$(OBJDIR)
@@ -100,3 +126,6 @@ endif
 .PHONY: check
 check:
 		$(SHELL) ./check.sh $(TEST)
+
+.PHONY: test
+test:		check
