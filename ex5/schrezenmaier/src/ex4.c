@@ -15,15 +15,19 @@
 int main(int argc, char** argv)
 {
    
-   if (argc < 3)
+   if (argc < 2)
    {
-      fprintf(stderr, "usage: %s input_filename output_filename\n", argv[0]);
+      fprintf(stderr, "usage: %s input_filename [output_filename]\n", argv[0]);
       return EXIT_FAILURE;
    }
    
+  char* output_filename = "/dev/null";
+   if (argc >= 3)
+      output_filename = argv[2];
+   
    LinearProgram* lp = read_from_file_lp(argv[1]);
    print_lp(lp);
-   print_feasible_binary_lp(lp, argv[2]);
+   print_feasible_binary_lp(lp, output_filename);
    
    return EXIT_SUCCESS;
 }
