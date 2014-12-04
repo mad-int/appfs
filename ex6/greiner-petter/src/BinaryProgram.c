@@ -66,7 +66,7 @@ int readConstraint( char buf[], FILE* fp, double* a, double* b, int* equalityTyp
 	// sets the pointer to the start the of the string to check some stuff
 	stringPointer = &buf[0];
 	// find the position of the first wrong symbol in that line, if some exists
-	int posWrongSymbol = strspn(stringPointer, "#0123456789.<=> ");
+	int posWrongSymbol = strspn(stringPointer, "#-0123456789.<=> ");
 	// find the position of a comment
 	char *posComment = strchr(stringPointer, '#');
 	
@@ -89,7 +89,7 @@ int readConstraint( char buf[], FILE* fp, double* a, double* b, int* equalityTyp
 	int i;
 	for ( i = 0; i < variables; i++ ){
 		// if the followed section is not a number
-		if ( strspn(stringPointer, ".0123456789") < strlen(stringPointer) ){
+		if ( strspn(stringPointer, "-.0123456789") < strlen(stringPointer) ){
 			printf( "[ERROR] Not a number at position %d\n", (i+1));
 			return FAILURE;
 		} else sscanf( stringPointer, "%lf", (a+i) );
