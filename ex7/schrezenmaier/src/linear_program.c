@@ -1,16 +1,22 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <string.h>
+/**
+ * @file   linear_program.c
+ * @brief  Contains a class for linear programs and functions to deal with them.
+ * @author Hendrik Schrezenmaier
+ * @date   02 Dez 2014
+ */
+
+#include <stdio.h> // fprintf
+#include <stdlib.h> // EXIT_*
+#include <assert.h> // assert
+#include <string.h> // strlen, strcmp, strtok
 #include <ctype.h> // isspace
-#include <time.h>
+#include <time.h> // clock
 #include "linear_program.h"
 #include "allocate.h"
+#include "gray_code.h"
 
-#define MAX_LINE_LEN   512  // Maximum input line length
-#define EPS 1e-10
-#define MAX_CONSTR 32
-#define MAX_VAR 32
+#define MAX_LINE_LEN 512 // maximum input line length
+#define EPS 1e-10 // accouracy for equality of doubles
 
 #ifdef DOUBLE
 #define NUMBER double
@@ -20,43 +26,81 @@
 #define NUMBER_FORMAT "%d"
 #endif
 
-/* represents a linear program Ax<=b */
+/**
+ * Represents a linear program Ax <= b.
+ */
 struct linear_program
 {
-   int var; /* the number of variables */
-   int constr; /* the number of set constraints */
-   int max_constr;
-   NUMBER** matrix; /* the matrix A */
-   NUMBER* rhs; /* the right hand side vector b */
+   int var; ///< the number of variables
+   int constr; ///< the number of explicitly added constraints
+   int max_constr; ///< the number of constraints we have reserved space for
+   NUMBER** matrix; ///< the matrix A
+   NUMBER* rhs; ///< the right hand side vector b
 };
 
+/**
+ * An enum of comparison signs.
+ */
 enum comp_sign
 {
-   LEQ, /* <= */
-   GEQ, /* >= */
-   EQ   /* == */
+   LEQ, ///< <=
+   GEQ, ///< >=
+   EQ   ///< ==
 };
 
-LinearProgram* new_lp(int var, int constr)
+/**
+ * Creates a new empty LP with space for the given number of variables and constraints.
+ * 
+ * @return the new LP object
+ */
+LinearProgram* new_lp(
+      int var, ///< the number of variables
+      int constr ///< the number of constraints
+                     )
 {
-   /* since == constraints are replaced by two <= constraints,
-      we have to reserve space for twice the given number of constraints*/
    LinearProgram* lp = allocate(1, sizeof(*lp));
    lp->var = var;
    lp->constr = 0;
+   /* since == constraints are replaced by two <= constraints,
+      we have to reserve space for twice the given number of constraints */
    lp->max_constr = 2 * constr;
    lp->matrix = allocate(lp->max_constr, sizeof(*lp->matrix));
    int i;
    for (i = 0; i < lp->max_constr; ++i)
-   {
       lp->matrix[i] = allocate(var, sizeof(*lp->matrix[0]));
-   }
    lp->rhs = allocate(lp->max_constr, sizeof(*lp->rhs));
    
    return lp;
 }
 
-void add_constraint_lp(LinearProgram* lp, NUMBER* row, enum comp_sign sign, NUMBER rhs)
+/**
+ * Deallocates the space of the given LP.
+ */
+void free_lp(
+      LinearProgram* lp ///< the LP whose space will be deallocated
+            )
+{
+   assert(lp);
+   
+   int i;
+   for (i = 0; i < lp->max_constr; ++i)
+      deallocate(lp->matrix[i]);
+   deallocate(lp->matrix);
+   deallocate(lp->rhs);
+   deallocate(lp);
+}
+
+/**
+ * Adds a constraint to the given LP.
+ * 
+ * This is only possible if the given LP has reserved enough space.
+ */
+void add_constraint_lp(
+      LinearProgram* lp, ///< the LP to which the constraint will be added
+      NUMBER* row, ///< the row of the LP matrix associated with the constraint
+      enum comp_sign sign, ///< the comparison sign of the constraint
+      NUMBER rhs ///< the right hand side of the constraint
+                      )
 {
    assert(lp);
    assert(lp->constr + 2 <= lp->max_constr);
@@ -91,7 +135,12 @@ void add_constraint_lp(LinearProgram* lp, NUMBER* row, enum comp_sign sign, NUMB
    }
 }
 
-void print_lp(LinearProgram* lp)
+/**
+ * Prints the given LP to the standard output.
+ */
+void print_lp(
+   LinearProgram* lp ///< the LP to be printed
+             )
 {
    assert(lp);
    
@@ -109,7 +158,14 @@ void print_lp(LinearProgram* lp)
    }
 }
 
-void parse_error(const char* file_name, int line, const char* message)
+/**
+ * Prints a parsing error message to the standard error output and exits the program.
+ */
+void parse_error(
+      const char* file_name, ///< the name of the file in which the error occurred
+      int line, ///< the number of the line in which the error occurred
+      const char* message ///< the error message to be printed
+                )
 {
    assert(file_name);
    assert(message);
@@ -119,7 +175,14 @@ void parse_error(const char* file_name, int line, const char* message)
    exit(EXIT_FAILURE);
 }
 
-LinearProgram* read_from_file_lp(const char* file_name)
+/**
+ * Reads a LP from a text file.
+ * 
+ * @return the LP object
+ */
+LinearProgram* read_from_file_lp(
+      const char* file_name ///< the path to the file
+                                )
 {
    
    assert(file_name);
@@ -265,10 +328,16 @@ LinearProgram* read_from_file_lp(const char* file_name)
    return lp;
 }
 
-/* Enumerates all feasible solutions of the given LP and writes them to the given file.
-   For faster evaluation gray codes are used. This might lead to numerical problems
-   when floating point arithmetic is used.*/
-void print_feasible_binary_lp(LinearProgram* lp, char* file_name)
+/** 
+ * Enumerates all feasible solutions of the given LP and writes them to the given file.
+ * 
+ *  For faster evaluation gray codes are used. This might lead to numerical problems
+ *  when floating point arithmetic is used.
+ */
+void print_feasible_binary_lp(
+      LinearProgram* lp, ///< the LP whose solutions will be printed
+      char* file_name ///< the path to the output file
+                             )
 {
    assert(lp);
    assert(file_name);
@@ -281,17 +350,9 @@ void print_feasible_binary_lp(LinearProgram* lp, char* file_name)
       exit(EXIT_FAILURE);
    }
    
-   /*clock_t t1, t2;
-   t1 = clock();*/
-   
    double time = - (double) clock();
    
    int i;
-   
-   long positions[MAX_CONSTR + 1];
-   positions[0] = 1l;
-   for(i = 1; i <= MAX_CONSTR; ++i)
-      positions[i] = positions[i-1] << 1;
    
    long x_count = 0l;
    NUMBER eval[lp->constr];
@@ -315,8 +376,9 @@ void print_feasible_binary_lp(LinearProgram* lp, char* file_name)
       if (feasible)
       {
          /* calculate current vector in gray code */
-         long x = x_count ^ (x_count >> 1);
+         long x = gray_get_code(x_count);
 
+         /* printing time is excuded from time measurement */
          time += (double) clock();
          
          for(i = 0; i < lp->var; ++i)
@@ -332,26 +394,16 @@ void print_feasible_binary_lp(LinearProgram* lp, char* file_name)
        
       /* calculate switching position */
       ++x_count;
-      int changed_var = __builtin_ffsl(x_count) - 1;
-      
-      /*int changed_var = 0;
-      while((positions[changed_var] & x_count) == 0l)
-         ++changed_var;*/
+      int changed_var = gray_get_changed_bit(x_count);
       
       if(changed_var >= lp->var)
          break;
       
       /* calculate new evaluation */
-      NUMBER sign = -1;
-      if((positions[changed_var + 1] & x_count) == 0l)
-         sign = 1;
+      int sign = gray_get_sign(x_count, changed_var);
       for(i = 0; i < lp->constr; ++i)
          eval[i] += sign * lp->matrix[i][changed_var];
    }
-   
-   
-   /*t2 = clock();
-   double time = ((double)t2 - (double)t1) / CLOCKS_PER_SEC;*/
    
    time += (double) clock();
    time /= CLOCKS_PER_SEC;

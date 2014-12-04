@@ -4,9 +4,9 @@ CFLAGS = -Wall -O3 -fprofile-arcs -ftest-coverage
 # INTEGER for integer arithmetic or DOUBLE for double arithmetic
 MODE = DOUBLE
 
-OBJ = main.o linear_program.o allocate.o
+OBJ = main.o linear_program.o allocate.o gray_code.o
 BIN = prog
-COV = allocate.gcda allocate.gcno main.gcda main.gcno linear_program.gcda linear_program.gcno
+COV = allocate.gcda allocate.gcno main.gcda main.gcno linear_program.gcda linear_program.gcno gray_code.gcda gray_code.gcno
 
 TESTFILE_PATH = ../../data/
 ERROR_TESTFILES = error_test1.dat error_test2.dat error_test3.dat error_test4.dat error_test5.dat error_test6.dat \
@@ -67,6 +67,9 @@ check: $(BIN)
 	echo "*** Test results: ***"; \
 	echo -e "failed: $$failed, passed: $$passed"
 
+doxy: src/main.c src/linear_program.c src/linear_program.h src/gray_code.c src/gray_code.h src/allocate.c src/allocate.h
+	doxygen doxyconfig
+
 main.o: src/main.c
 	$(CC) $(CFLAGS) -c src/main.c
 
@@ -75,3 +78,6 @@ linear_program.o: src/linear_program.c
 
 allocate.o: src/allocate.c
 	$(CC) $(CFLAGS) -c src/allocate.c
+
+gray_code.o: src/gray_code.c
+	$(CC) $(CFLAGS) -c src/gray_code.c
