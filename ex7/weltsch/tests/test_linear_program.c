@@ -45,7 +45,9 @@ static void test_lp_parser(void **state) {
     assert_int_equal(lp->vector[1], 2);
     assert_int_equal(lp->vector[2], 5);
 
-    get_bin_solutions_lp(lp);
+    int expected_sols = 3;
+    int sols = get_bin_solutions_lp(lp);
+    assert_int_equal(sols, expected_sols);
     lp_free(lp);
 }
 
@@ -77,6 +79,10 @@ static void test_is_feasible(void **state) {
 
     assert_true(is_feasible(feasible, lp));
     assert_false(is_feasible(not_feasible, lp));
+
+    int expected_sols = 1;
+    int sols = get_bin_solutions_lp(lp);
+    assert_int_equal(sols, expected_sols);
     lp_free(lp);
 }
 
@@ -87,6 +93,10 @@ static void test_is_feasible_geq(void **state) {
 
     assert_true(is_feasible(feasible, lp));
     assert_false(is_feasible(not_feasible, lp));
+
+    int expected_sols = 1;
+    int sols = get_bin_solutions_lp(lp);
+    assert_int_equal(sols, expected_sols);
     lp_free(lp);
 }
 
@@ -97,6 +107,10 @@ static void test_is_feasible_eq(void **state) {
 
     assert_true(is_feasible(feasible, lp));
     assert_false(is_feasible(not_feasible, lp));
+
+    int expected_sols = 1;
+    int sols = get_bin_solutions_lp(lp);
+    assert_int_equal(sols, expected_sols);
     lp_free(lp);
 }
 
@@ -109,6 +123,10 @@ static void test_is_feasible_mixed(void **state) {
     assert_true(is_feasible(feasible, lp));
     assert_false(is_feasible(not_feasible, lp));
     assert_false(is_feasible(not_feasible_zeros, lp));
+
+    int expected_sols = 1;
+    int sols = get_bin_solutions_lp(lp);
+    assert_int_equal(sols, expected_sols);
     lp_free(lp);
 }
 
