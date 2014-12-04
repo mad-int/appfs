@@ -22,7 +22,6 @@ all: clean $(MAIN) check
 # link all object files
 $(MAIN): $(MAINOBJFILES)
 	@$(CC) $(CFLAGS) -o $(MAIN) $+
-	@ln -sf $(MAIN) ex6
 
 # build all object files
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(OBJDIR)
