@@ -75,11 +75,13 @@ int process_file(const char* filename, Matrix** matrix)
             if ((int)strlen(test) != 0)
             {
                fprintf(stderr, "Wrong input data for number of variables.\n");
+               fclose(fp);
                return -1;
             }
             if (n <= 0 || n > MAX_MATRIX_SIZE)
             {
                fprintf(stderr, "Dimension of columns is not right. (%i not in {1, ..., %i})\n", n, MAX_MATRIX_SIZE);
+               fclose(fp);
                return -1;
             }
             coefs = allocate(n, sizeof(*coefs));
@@ -94,12 +96,15 @@ int process_file(const char* filename, Matrix** matrix)
             if ((int)strlen(test) != 0)
             {
                fprintf(stderr, "Wrong input data for number of constraints.\n");
+               deallocate(coefs);
+               fclose(fp);
                return -1;
             }
             if (m <= 0 || m > MAX_MATRIX_SIZE)
             {
                fprintf(stderr, "Dimension of rows is not right. (%i not in {1, ..., %i})\n", m, MAX_MATRIX_SIZE);
                deallocate(coefs);
+               fclose(fp);
                return -1;
             }
             *matrix = matrix_new(m, n);
@@ -113,6 +118,7 @@ int process_file(const char* filename, Matrix** matrix)
             {
                fprintf(stderr, "Dimension not set or coefficient array not allocated.\n");
                deallocate(coefs);
+               fclose(fp);
                return -1;
             }
 
@@ -125,6 +131,7 @@ int process_file(const char* filename, Matrix** matrix)
                {
                   fprintf(stderr, "Too many coefficients or no relation sign.\n");
                   deallocate(coefs);
+                  fclose(fp);
                   return -1;
                }
                coefs[j] = strtov(tok, &test);
@@ -132,6 +139,7 @@ int process_file(const char* filename, Matrix** matrix)
                {
                   fprintf(stderr, "Wrong input data in line %i. Wrong type of coefficient (%s) of variable %i.\n", lines, tok, j+1);
                   deallocate(coefs);
+                  fclose(fp);
                   return -1;
                }
                tok = strtok(NULL, delimiter);
@@ -143,6 +151,7 @@ int process_file(const char* filename, Matrix** matrix)
             {
                fprintf(stderr, "Not enough entries in line %i.\n", lines);
                deallocate(coefs);
+               fclose(fp);
                return -1;
             }
 
@@ -151,6 +160,7 @@ int process_file(const char* filename, Matrix** matrix)
             {
                fprintf(stderr, "No relation operator in line %i.\n", lines);
                deallocate(coefs);
+               fclose(fp);
                return -1;
             }
 
@@ -166,6 +176,7 @@ int process_file(const char* filename, Matrix** matrix)
             {
                fprintf(stderr, "Wrong input data in line %i. (no right-hand side)\n", lines);
                deallocate(coefs);
+               fclose(fp);
                return -1;
             }
 
@@ -175,6 +186,7 @@ int process_file(const char* filename, Matrix** matrix)
             {
                fprintf(stderr, "Wrong input data in line %i. (wrong type of right-hand side)\n", lines);
                deallocate(coefs);
+               fclose(fp);
                return -1;
             }
 
@@ -184,6 +196,7 @@ int process_file(const char* filename, Matrix** matrix)
             {
                fprintf(stderr, "Too many information after relation sign of line %i.\n", lines);
                deallocate(coefs);
+               fclose(fp);
                return -1;
             }
 
@@ -194,6 +207,7 @@ int process_file(const char* filename, Matrix** matrix)
                {
                   fprintf(stderr, "Problem is infeasible.\n");
                   deallocate(coefs);
+                  fclose(fp);
                   return -2;
                }
             }
@@ -206,6 +220,7 @@ int process_file(const char* filename, Matrix** matrix)
                {
                   fprintf(stderr, "Problem is infeasible.\n");
                   deallocate(coefs);
+                  fclose(fp);
                   return -2;
                }
             }
@@ -217,6 +232,7 @@ int process_file(const char* filename, Matrix** matrix)
             {
                fprintf(stderr, "Too many rows.\n");
                deallocate(coefs);
+               fclose(fp);
                return -1;
 
             }
@@ -228,6 +244,7 @@ int process_file(const char* filename, Matrix** matrix)
    if (matrix_getM(*matrix) + matrix_getRedundant(*matrix) < m)
    {
       fprintf(stderr, "Not enough rows.\n");
+      fclose(fp);
       return -1;
    }
 

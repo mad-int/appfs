@@ -6,7 +6,7 @@ TYPE={int, double}
 switches between types of matrix entries [default: double]
 
 OPT={opt, dbg}
-switches between compiling modes [opt: -O3, dbg: -g, default: -O]
+switches between compiling modes (opt: -O3, dbg: -g) [default: -O]
 
 TEST={big}
 defines name of testset for make check [default: big]

@@ -60,7 +60,7 @@ int main(int argc, char** argv)
       fprintf(stdout, "Running time: %.2f seconds.\n", GET_SEC(start, clock()));
       return EXIT_FAILURE;
    }
-   assert(retcode = BP_OKAY);
+   assert(retcode == BP_OKAY);
 
    clock_t enumeration = clock();
 
