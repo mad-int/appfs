@@ -4,10 +4,11 @@
 #include <cmocka.h>
 
 #include "../src/linear_program.c"
-#define TEST_FILE_1 "test_file_1"
-#define TEST_FILE_2 "feasibility_check"
-#define TEST_FILE_3 "feasibility_check_geq"
-#define TEST_FILE_4 "feasibility_check_eq"
+#define TEST_FILE_1 "test_file_1.dat"
+#define TEST_FILE_2 "feasibility_check.dat"
+#define TEST_FILE_3 "feasibility_check_geq.dat"
+#define TEST_FILE_4 "feasibility_check_eq.dat"
+#define TEST_FILE_5 "test_constraint_types.dat"
 
 /* creates a new lp */
 static void test_lp_new(void **state) {
@@ -25,6 +26,8 @@ static void test_lp_parser(void **state) {
     LinearProgram *lp = new_lp_from_file(TEST_FILE_1);
     assert_int_equal(lp->rows, expected_rows);
     assert_int_equal(lp->cols, expected_cols);
+    assert_int_equal(get_rows(lp), expected_rows);
+    assert_int_equal(get_cols(lp), expected_cols);
 
     // check matrix entries
     assert_int_equal(lp->matrix[0][0], 1);
@@ -129,6 +132,22 @@ static void test_gray_code(void **state) {
     assert_true(__get_nth_bit(gray_code, 2));
 }
 
+static void test_constraint_type(void **state) {
+    int expected_rows = 4;
+    int expected_cols = 1;
+    LinearProgram *lp = new_lp_from_file(TEST_FILE_5);
+    assert_int_equal(get_rows(lp), expected_rows);
+    assert_int_equal(get_cols(lp), expected_cols);
+
+    assert_int_equal(lp->constraint_types[0], LEQ);
+    assert_int_equal(lp->constraint_types[1], GEQ);
+    assert_int_equal(lp->constraint_types[2], EQ);
+    assert_int_equal(lp->constraint_types[3], EQ);
+
+    int solutions = get_bin_solutions_lp(lp);
+    assert_int_equal(solutions, 1);
+}
+
 int main(void) {
     const UnitTest tests[] = {
         unit_test(test_lp_new),
@@ -140,7 +159,8 @@ int main(void) {
         unit_test(test_is_feasible_eq),
         unit_test(test_is_feasible_mixed),
         unit_test(test_nth_bit),
-        unit_test(test_gray_code)
+        unit_test(test_gray_code),
+        unit_test(test_constraint_type)
     };
 
     return run_tests(tests);
