@@ -29,7 +29,7 @@ static void test_lp_parser(void **state) {
     // check matrix entries
     assert_int_equal(lp->matrix[0][0], 1);
     assert_int_equal(lp->matrix[0][1], 2);
-    assert_int_equal(lp->matrix[0][2], 3);
+    assert_int_equal(lp->matrix[1][2], 3);
     assert_int_equal(lp->matrix[1][0], 1);
     assert_int_equal(lp->matrix[1][1], 2);
     assert_int_equal(lp->matrix[1][2], 3);
@@ -42,7 +42,7 @@ static void test_lp_parser(void **state) {
     assert_int_equal(lp->vector[1], 2);
     assert_int_equal(lp->vector[2], 5);
 
-    print_bin_solutions_lp(lp);
+    get_bin_solutions_lp(lp);
     lp_free(lp);
 }
 
@@ -67,22 +67,9 @@ static void test_parse_row_fail(void **state) {
     lp_free(lp);
 }
 
-static void test_next_configuration(void **state) {
-    int len = 5;
-    int config[] = {1, 0, 0, 1, 1, 0};
-
-    next_configuration(config, len);
-    assert_int_equal(0, config[0]);
-    assert_int_equal(1, config[1]);
-    assert_int_equal(0, config[2]);
-    assert_int_equal(1, config[3]);
-    assert_int_equal(1, config[4]);
-    assert_int_equal(0, config[5]);
-}
-
 static void test_is_feasible(void **state) {
-    int feasible[] = {1, 0, 1, 1, 0, 0};
-    int not_feasible[] = {0, 0, 1, 0, 0, 1};
+    unsigned int feasible = 13u;
+    unsigned int not_feasible = 9u;
     LinearProgram* lp = new_lp_from_file(TEST_FILE_2);
 
     assert_true(is_feasible(feasible, lp));
@@ -91,8 +78,8 @@ static void test_is_feasible(void **state) {
 }
 
 static void test_is_feasible_geq(void **state) {
-    int feasible[] = {1, 0, 1, 1, 0, 0};
-    int not_feasible[] = {0, 0, 1, 0, 0, 1};
+    unsigned int feasible = 13u;
+    unsigned int not_feasible = 9u;
     LinearProgram* lp = new_lp_from_file(TEST_FILE_3);
 
     assert_true(is_feasible(feasible, lp));
@@ -101,8 +88,8 @@ static void test_is_feasible_geq(void **state) {
 }
 
 static void test_is_feasible_eq(void **state) {
-    int feasible[] = {1, 0, 1, 1, 0, 0};
-    int not_feasible[] = {0, 0, 1, 0, 0, 1};
+    unsigned int feasible = 13u;
+    unsigned int not_feasible = 9u;
     LinearProgram* lp = new_lp_from_file(TEST_FILE_4);
 
     assert_true(is_feasible(feasible, lp));
@@ -111,9 +98,9 @@ static void test_is_feasible_eq(void **state) {
 }
 
 static void test_is_feasible_mixed(void **state) {
-    int feasible[] = {1, 0, 1, 1, 0, 0};
-    int not_feasible[] = {0, 0, 1, 0, 0, 1};
-    int not_feasible_zeros[] = {0, 0, 0, 0, 0, 0};
+    unsigned int feasible = 13u;
+    unsigned int not_feasible = 9u;
+    unsigned int not_feasible_zeros = 0;
     LinearProgram* lp = new_lp_from_file(TEST_FILE_4);
 
     assert_true(is_feasible(feasible, lp));
@@ -122,17 +109,38 @@ static void test_is_feasible_mixed(void **state) {
     lp_free(lp);
 }
 
+static void test_nth_bit(void **state) {
+    unsigned int bits = 38u;
+
+    assert_false(__get_nth_bit(bits, 0));
+    assert_true(__get_nth_bit(bits, 1));
+    assert_true(__get_nth_bit(bits, 2));
+    assert_false(__get_nth_bit(bits, 3));
+    assert_false(__get_nth_bit(bits, 4));
+    assert_true(__get_nth_bit(bits, 5));
+}
+
+static void test_gray_code(void **state) {
+    /* 7th gray_code is 101 */
+    unsigned int gray_code = next_vars(6u);
+
+    assert_true(__get_nth_bit(gray_code, 0));
+    assert_false(__get_nth_bit(gray_code, 1));
+    assert_true(__get_nth_bit(gray_code, 2));
+}
+
 int main(void) {
     const UnitTest tests[] = {
         unit_test(test_lp_new),
         unit_test(test_lp_parser),
         unit_test(test_parse_row),
         unit_test(test_parse_row_fail),
-        unit_test(test_next_configuration),
         unit_test(test_is_feasible),
         unit_test(test_is_feasible_geq),
         unit_test(test_is_feasible_eq),
-        unit_test(test_is_feasible_mixed)
+        unit_test(test_is_feasible_mixed),
+        unit_test(test_nth_bit),
+        unit_test(test_gray_code)
     };
 
     return run_tests(tests);

@@ -196,10 +196,12 @@ LinearProgram *new_lp_from_file(const char* filename) {
 
     if (constraints != rows) {
         fprintf(stderr, "speciefied #(rows) does not match: %d expected, %d found\n", rows, constraints);
+        lp_free(lp);
         return NULL;
     }
 
     if (can_overflow(lp)) {
+        lp_free(lp);
         return NULL;
     }
 
@@ -207,10 +209,6 @@ LinearProgram *new_lp_from_file(const char* filename) {
     return lp;
 
 read_error:
-    if (lp) {
-        lp_free(lp);
-    }
-
     printf("error in line %d\n", lines);
     fclose(fp);
     return NULL;
