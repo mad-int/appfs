@@ -64,7 +64,7 @@ char* parse_type(char* s, int row, LinearProgram* lp) {
 bool parse_row(char* s, int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
     assert(row >= 0);
-    assert(row < lp->rows);
+    assert(row < get_rows(lp));
 
     char* end_ptr;
     int cols = get_cols(lp);

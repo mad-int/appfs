@@ -18,42 +18,6 @@ struct linear_program {
     int* constraint_types;
 };
 
-bool can_overflow(LinearProgram* lp) {
-    assert(lp_is_valid(lp));
-
-    for(int r = 0; r < lp->rows; r++)
-    {
-        num_t row_max = 0;
-        num_t row_min = 0;
-
-        for(int c = 0; c < lp->cols; c++)
-        {
-            num_t val = lp->matrix[r][c];
-
-            if (val > 0)
-            {
-                if (row_max < MAX_COEF_VAL - val) {
-                    row_max += val;
-                } else {
-                    fprintf(stderr, "Error: row %d numerical overflow\n", r);
-                    return true;
-                }
-            } else if (val < 0) {
-                if (row_min > MIN_COEF_VAL - val) {
-                    row_min += val;
-                } else {
-                    fprintf(stderr, "Error: row %d numerical negative overflow\n", r);
-                    return true;
-                }
-            } else {
-                assert(val == 0);
-            }
-        }
-    }
-
-    return false;
-}
-
 bool lp_is_valid(LinearProgram* lp) {
     if (NULL == lp) {
         return false;
@@ -111,6 +75,42 @@ void lp_free(LinearProgram* lp) {
     deallocate(lp);
 }
 
+bool can_overflow(LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+
+    for(int r = 0; r < lp->rows; r++)
+    {
+        num_t row_max = 0;
+        num_t row_min = 0;
+
+        for(int c = 0; c < lp->cols; c++)
+        {
+            num_t val = lp->matrix[r][c];
+
+            if (val > 0)
+            {
+                if (row_max < MAX_COEF_VAL - val) {
+                    row_max += val;
+                } else {
+                    fprintf(stderr, "Error: row %d numerical overflow\n", r);
+                    return true;
+                }
+            } else if (val < 0) {
+                if (row_min > MIN_COEF_VAL - val) {
+                    row_min += val;
+                } else {
+                    fprintf(stderr, "Error: row %d numerical negative overflow\n", r);
+                    return true;
+                }
+            } else {
+                assert(val == 0);
+            }
+        }
+    }
+
+    return false;
+}
+
 int get_rows(LinearProgram* lp) {
     assert(lp_is_valid(lp));
     return lp->rows;
@@ -122,7 +122,7 @@ int get_cols(LinearProgram* lp) {
 }
 
 void set_coef(LinearProgram *lp, int row, int col, num_t val) {
-    assert(lp_is_valid_lp);
+    assert(lp_is_valid(lp));
     assert(row >= 0 && row < lp->rows);
     assert(col >= 0 && col < lp->cols);
     assert(val <= MAX_COEF_VAL && val >= MIN_COEF_VAL);
@@ -131,7 +131,7 @@ void set_coef(LinearProgram *lp, int row, int col, num_t val) {
 }
 
 void set_rhs(LinearProgram *lp, int row, num_t val) {
-    assert(lp_is_valid_lp);
+    assert(lp_is_valid(lp));
     assert(row >= 0 && row < lp->rows);
     assert(val <= MAX_COEF_VAL && val >= MIN_COEF_VAL);
 
@@ -139,9 +139,8 @@ void set_rhs(LinearProgram *lp, int row, num_t val) {
 }
 
 void set_constraint_type(LinearProgram *lp, int row, int type) {
-    assert(lp_is_valid_lp);
+    assert(lp_is_valid(lp));
     assert(row >= 0 && row < lp->rows);
-    assert(val <= MAX_COEF_VAL && val >= MIN_COEF_VAL);
 
     lp->constraint_types[row] = type;
 }

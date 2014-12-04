@@ -19,6 +19,8 @@ extern LinearProgram* lp_new(int rows, int cols);
 
 extern void lp_free(LinearProgram* lp);
 
+bool lp_is_valid(LinearProgram* lp);
+
 extern uint64_t get_bin_solutions_lp(LinearProgram* lp);
 
 extern void print_matrix(LinearProgram* lp);
