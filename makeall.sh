@@ -7,7 +7,7 @@ home=`pwd`
 # don't do coverage every time
 coverage=0
 
-exes=(ex5 ex6)
+exes=(ex5 ex6 ex7)
 tests=("$home"/data/corrupt* "$home"/data/error* "$home"/data/test*)
 
 for ex in ${exes[@]}
