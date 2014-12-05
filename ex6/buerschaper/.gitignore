@@ -1,0 +1,14 @@
+#Debug directory
+/Debug
+/Debug/*
+
+
+/obj/*
+
+#eclipse project files
+.project
+.cproject
+/.settings
+.settings/*
+
+ex6.exe

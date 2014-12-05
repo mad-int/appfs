@@ -4,29 +4,43 @@
 
 home=`pwd`
 
-ex="ex5"
+# don't do coverage every time
+coverage=0
 
-students=(inken.gamrath simon steger weltsch lang buerschaper schrezenmaier iupinov)
-
+exes=(ex5 ex6 ex7)
 tests=("$home"/data/corrupt* "$home"/data/error* "$home"/data/test*)
 
-for student in ${students[@]}
+for ex in ${exes[@]}
 do
-   cd "$ex/$student"
-   echo "compiling code for $ex/$student"
-   make clean
-   make
+   students=(`find $ex -maxdepth 1 -mindepth 1 -type d`)
 
-   for test in ${tests[@]}
+   for student in ${students[@]}
    do
-      ./ex5 $test
+      cd "$student"
+      echo "compiling code for $student"
+      make clean
+      make
+
+      for test in ${tests[@]}
+      do
+         if [ $student = "ex6/schrezenmaier" ] || [ $student = "ex5/schrezenmaier" ]; then
+            ./$ex $test sol
+         else
+            ./$ex $test
+         fi
+      done
+
+      if [ $coverage -eq 1 ]; then
+         mkdir -p cov/
+         # location of compiled code is not known - try some...
+         lcov -d obj/ -c -o cov/coverage.info
+         lcov -d src/ -c -o cov/coverage.info
+         lcov -d . -c -o cov/coverage.info
+         genhtml -o cov cov/coverage.info
+      fi
+
+      cd "$home"
    done
-   mkdir cov/
-   # location of compiled code is not known - try some...
-   lcov -d obj/ -c -o cov/coverage.info
-   lcov -d src/ -c -o cov/coverage.info
-   lcov -d . -c -o cov/coverage.info
-   genhtml -o cov cov/coverage.info
-   cd "$home"
 done
 
+exit

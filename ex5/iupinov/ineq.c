@@ -189,7 +189,7 @@ int ReadIneqSystemData(FILE *file, struct IneqSystem **system)
 // solution routines
 //
 
-int GetBinaryVectorComponent(const struct BinaryVector *vector, int index)
+int GetBinaryVectorComponent(const struct BinaryVector *vector, const int index)
 {
 	assert(vector);	
 	assert((index >= 0) && (index < MAX_VARIABLES));	
@@ -204,13 +204,14 @@ int TestSolutionForConstraint(const struct IneqConstraint *constraint, const str
 	int j;
 	long double sum = 0;
 	for (j = 0; j < solution->variablesCount; ++j)
-		sum += GetBinaryVectorComponent(solution, j) * constraint->coefficients[j];
+		if (GetBinaryVectorComponent(solution, j))
+			sum += constraint->coefficients[j];
 	sum -= (long double)constraint->conditionValue; // rounding?
 	int result = 0;	
 	if (constraint->condition & COND_LESS_OR_EQUAL)
-		result |= (sum > 0);
+		result |= (sum > 1e-5);
 	if (constraint->condition & COND_GREATER_OR_EQUAL)
-		result |= (sum < 0);	
+		result |= (sum < 1e-5);	
 	return result;
 }
 
