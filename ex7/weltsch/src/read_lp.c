@@ -30,9 +30,9 @@ char* skip_spaces(char* s) {
  */
 bool parse_coef(char **row_ptr, int row, int col, LinearProgram* lp) {
     assert(lp_is_valid(lp));
-    assert(row >= 0)
+    assert(row >= 0);
     assert(row < get_rows(lp));
-    assert(col >= 0)
+    assert(col >= 0);
     assert(col < get_cols(lp));
     assert(NULL != row_ptr);
 
@@ -60,7 +60,7 @@ bool parse_coef(char **row_ptr, int row, int col, LinearProgram* lp) {
  */
 bool parse_type(char** row_ptr, int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
-    assert(row >= 0)
+    assert(row >= 0);
     assert(row < get_rows(lp));
     assert(NULL != row_ptr);
 
@@ -110,7 +110,7 @@ bool parse_type(char** row_ptr, int row, LinearProgram* lp) {
  */
 bool parse_rhs(char** row_ptr, int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
-    assert(row >= 0)
+    assert(row >= 0);
     assert(row < get_rows(lp));
     assert(NULL != row_ptr);
 
@@ -151,30 +151,30 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
     }
 
     if (coefs != vars) {
-        fprintf(stderr, "#cols does not match #vars, expected: %d, found %d",vars, coefs);
+        fprintf(stderr, "#cols does not match #vars, expected: %d, found %d\n",vars, coefs);
         return false;
     }
 
     if (!parse_type(&s, row, lp)) {
-        fprintf(stderr, "invalid type + %s", s);
+        fprintf(stderr, "invalid type: %s\n", s);
         return false;
     }
 
     /* still not at end of string */
     if (!*s) {
-        fprintf(stderr, "missing rhs + %s", s);
+        fprintf(stderr, "missing rhs: %s\n", s);
         return false;
     }
 
     if (!parse_rhs(&s, row, lp)) {
-        fprintf(stderr, "invalid rhs + %s", s);
+        fprintf(stderr, "invalid rhs: %s\n", s);
         return false;
     }
 
     s = skip_spaces(s);
     /* this time make sure we really ARE at end of string */
     if (*s) {
-        fprintf(stderr, "trailing garbage + %s", s);
+        fprintf(stderr, "trailing garbage: %s\n", s);
         return false;
     }
 
@@ -251,12 +251,12 @@ LinearProgram *new_lp_from_file(const char* filename) {
             lp = lp_new(rows, cols);
             parser_state = READ_CONSTRAINTS;
         } else {
-            /* stop if a row does not match the format */
             if (constraints >= rows) {
                 fprintf(stderr, "too many constraints\n");
                 goto read_error;
             }
 
+            /* stop if a row does not match the format */
             if (!parse_row(s, constraints, lp)) {
                 fprintf(stderr, "row format is invalid\n");
                 goto read_error;
