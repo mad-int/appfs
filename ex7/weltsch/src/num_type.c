@@ -9,7 +9,6 @@ num_t parse_num(char* num_str, char** end_ptr) {
 
 bool is_num_valid(num_t num, char* num_str, char* end_ptr) {
     if (num < MIN_COEF_VAL || num > MAX_COEF_VAL) {
-        fprintf(stderr, "number %.0lf is to big for an int\n", num);
         return false;
     }
 
@@ -28,12 +27,10 @@ num_t parse_num(char* num_str, char** end_ptr) {
 
 bool is_num_valid(num_t num, char* num_str, char* end_ptr) {
     if (num > MAX_COEF_VAL || num < MIN_COEF_VAL) {
-        fprintf(stderr, "number %d is to big for an int\n", num);
         return false;
     }
 
     if (num_str == end_ptr) {
-        fprintf(stderr, "not a valid integer %s\n", num_str);
         return false;
     }
     return true;
