@@ -21,10 +21,20 @@ char* skip_spaces(char* s) {
     return s;
 }
 
+/*
+ * tries parse num_t value (num) into constraint matrix
+ * @return false if not a valid number, true otherwise
+ * side effects:
+ *      increments *row_ptr
+ *      sets coef[row][col] in lp
+ */
 bool parse_coef(char **row_ptr, int row, int col, LinearProgram* lp) {
-    if (col >= get_cols(lp)) {
-        return false;
-    }
+    assert(lp_is_valid(lp));
+    assert(row >= 0)
+    assert(row < get_rows(lp));
+    assert(col >= 0)
+    assert(col < get_cols(lp));
+    assert(NULL != row_ptr);
 
     char* end = NULL;
     num_t num = parse_num(*row_ptr, &end);
@@ -35,10 +45,25 @@ bool parse_coef(char **row_ptr, int row, int col, LinearProgram* lp) {
 
     set_coef(lp, row, col, num);
     *row_ptr = end;
+
+    assert(lp_is_valid(lp));
     return true;
 }
 
+/*
+ * tries to parse the constraint type of a constraint into
+ * the lp
+ * @return true if matches '<=', '>=', '==', '=', false otherwise
+ * side effects:
+ *      will increment *row_ptr
+ *      sets constraint_type[row] in lp
+ */
 bool parse_type(char** row_ptr, int row, LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    assert(row >= 0)
+    assert(row < get_rows(lp));
+    assert(NULL != row_ptr);
+
     *row_ptr = skip_spaces(*row_ptr);
     if (!**row_ptr) {
         return false;
@@ -75,7 +100,20 @@ bool parse_type(char** row_ptr, int row, LinearProgram* lp) {
     return false;
 }
 
+/*
+ * tries to parse a num_t value into
+ * the rhs at of lp at the specified row
+ * returns true on success, false otherwise
+ * side effect:
+ *      will increment *row_ptr
+ *      sets rhs[row] in lp
+ */
 bool parse_rhs(char** row_ptr, int row, LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    assert(row >= 0)
+    assert(row < get_rows(lp));
+    assert(NULL != row_ptr);
+
     char* end = NULL;
     num_t num = parse_num(*row_ptr, &end);
 
@@ -85,6 +123,8 @@ bool parse_rhs(char** row_ptr, int row, LinearProgram* lp) {
 
     set_rhs(lp, row, num);
     *row_ptr = end;
+
+    assert(lp_is_valid(lp));
     return true;
 }
 
@@ -101,7 +141,7 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
     int coefs = 0;
 
     /* read coefficients */
-    while (parse_coef(&s, row, coefs, lp)) {
+    while (coefs < get_cols(lp) && parse_coef(&s, row, coefs, lp)) {
         coefs++;
     }
 
