@@ -266,7 +266,6 @@ LinearProgram *new_lp_from_file(const char* filename) {
         }
 
     }
-    fclose(fp);
 
     if (constraints != rows) {
         fprintf(stderr, "speciefied #(rows) does not match: %d expected, %d found\n", rows, constraints);
@@ -280,6 +279,7 @@ LinearProgram *new_lp_from_file(const char* filename) {
 
     printf("%d lines\n", lines);
 
+    fclose(fp);
     assert(lp_is_valid(lp));
     return lp;
 
