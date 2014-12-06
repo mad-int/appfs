@@ -133,21 +133,21 @@ static void test_is_feasible_mixed(void **state) {
 static void test_nth_bit(void **state) {
     unsigned int bits = 38u;
 
-    assert_false(__get_nth_bit(bits, 0));
-    assert_true(__get_nth_bit(bits, 1));
-    assert_true(__get_nth_bit(bits, 2));
-    assert_false(__get_nth_bit(bits, 3));
-    assert_false(__get_nth_bit(bits, 4));
-    assert_true(__get_nth_bit(bits, 5));
+    assert_false(get_nth_bit(bits, 0));
+    assert_true(get_nth_bit(bits, 1));
+    assert_true(get_nth_bit(bits, 2));
+    assert_false(get_nth_bit(bits, 3));
+    assert_false(get_nth_bit(bits, 4));
+    assert_true(get_nth_bit(bits, 5));
 }
 
 static void test_gray_code(void **state) {
     /* 7th gray_code is 101 */
     unsigned int gray_code = next_vars(6u);
 
-    assert_true(__get_nth_bit(gray_code, 0));
-    assert_false(__get_nth_bit(gray_code, 1));
-    assert_true(__get_nth_bit(gray_code, 2));
+    assert_true(get_nth_bit(gray_code, 0));
+    assert_false(get_nth_bit(gray_code, 1));
+    assert_true(get_nth_bit(gray_code, 2));
 }
 
 static void test_constraint_type(void **state) {

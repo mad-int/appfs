@@ -92,7 +92,7 @@ bool parse_rhs(char** row_ptr, int row, LinearProgram* lp) {
  * tries to set the corresponding row in the matrix
  * returns false on error
  */
-bool validate_and_parse_row(char* s, int row, LinearProgram* lp) {
+bool parse_row(char* s, int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
     assert(row >= 0);
     assert(row < get_rows(lp));
@@ -217,7 +217,7 @@ LinearProgram *new_lp_from_file(const char* filename) {
                 goto read_error;
             }
 
-            if (!validate_and_parse_row(s, constraints, lp)) {
+            if (!parse_row(s, constraints, lp)) {
                 fprintf(stderr, "row format is invalid\n");
                 goto read_error;
             }
