@@ -28,10 +28,12 @@ double:
 	$(CC) $(CFLAGS) -D$(MODE) $(BIN_SRC) -o $(BIN)
 
 		
-check: $(BIN) #TODO 
-#	for file in $(ERROR_TESTFILES); do \
-#		echo $$file:; \
-#		./$(BIN) $(TESTFILE_PATH)$$file > check_output.dat; \
+check: #TODO: learn shell programming.
+	for file in $(ERROR_TESTFILES); 
+	do
+		echo "check file" $$file
+		./$(BIN) $(TESTFILE_PATH)$file
+	done;
 		
 	
 clean:
