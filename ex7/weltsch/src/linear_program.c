@@ -75,6 +75,7 @@ void lp_free(LinearProgram* lp) {
     deallocate(lp);
 }
 
+/* taken and adapted form ex6/bzfkocht/src/bip.c */
 bool can_overflow(LinearProgram* lp) {
     assert(lp_is_valid(lp));
 
@@ -150,7 +151,7 @@ uint64_t next_vars(uint64_t n) {
     return n ^ n >> 1;
 }
 
-bool __get_nth_bit(uint64_t bits, int n) {
+bool get_nth_bit(uint64_t bits, int n) {
     assert(n >= 0);
     assert(n < 64);
 
@@ -158,19 +159,19 @@ bool __get_nth_bit(uint64_t bits, int n) {
 }
 
 /* print a solution vector */
-void __print_vars(uint64_t vars, int len) {
+void print_vars(uint64_t vars, int len) {
     assert(0 < len);
     assert(len < 64);
 
     int j;
     for (j = 0; j < len; j++) {
-        printf("%d ", __get_nth_bit(vars, j));
+        printf("%d ", get_nth_bit(vars, j));
     }
 
     printf("\n");
 }
 
-bool __is_feasible_sum(num_t sum, int row, LinearProgram* lp) {
+bool is_feasible_sum(num_t sum, int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
     assert(row >= 0);
     assert(row < lp->rows);
@@ -193,19 +194,19 @@ bool is_feasible(uint64_t vars, LinearProgram* lp) {
     for (i = 0; i < lp->rows; i++) {
         num_t sum = 0;
         for (j = 0; j < lp->cols; j++) {
-            if (__get_nth_bit(vars, j)) {
+            if (get_nth_bit(vars, j)) {
                 sum += lp->matrix[i][j];
             }
         }
 
-        if (!__is_feasible_sum(sum, i, lp)) {
+        if (!is_feasible_sum(sum, i, lp)) {
             return false;
         }
     }
     return true;
 }
 
-void __print_constraint_type(int row, LinearProgram* lp) {
+void print_constraint_type(int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
     assert(row >= 0);
     assert(row < lp->rows);
@@ -235,7 +236,7 @@ void print_matrix(LinearProgram* lp) {
             print_num(lp->matrix[i][j]);
         }
 
-        __print_constraint_type(i, lp);
+        print_constraint_type(i, lp);
 
         print_num(lp->vector[i]);
         printf("\n");
@@ -254,7 +255,7 @@ uint64_t get_bin_solutions_lp(LinearProgram* lp) {
     for (i = 0; i < count; i++) {
         vars = next_vars(i);
         if (is_feasible(vars, lp)) {
-            __print_vars(vars, lp->cols);
+            print_vars(vars, lp->cols);
             feasible_solutions++;
         }
     }

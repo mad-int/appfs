@@ -21,40 +21,111 @@ char* skip_spaces(char* s) {
     return s;
 }
 
-char* parse_type(char* s, int row, LinearProgram* lp) {
-    s = skip_spaces(s);
-    if (!*s) {
-        return NULL;
+/*
+ * tries parse num_t value (num) into constraint matrix
+ * @return false if not a valid number, true otherwise
+ * side effects:
+ *      increments *row_ptr
+ *      sets coef[row][col] in lp
+ */
+bool parse_coef(char **row_ptr, int row, int col, LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    assert(row >= 0);
+    assert(row < get_rows(lp));
+    assert(col >= 0);
+    assert(col < get_cols(lp));
+    assert(NULL != row_ptr);
+
+    char* end = NULL;
+    num_t num = parse_num(*row_ptr, &end);
+
+    if (!is_num_valid(num, *row_ptr, end)) {
+        return false;
     }
-    if (*s == '<') {
-        if ('=' != *(s+1)) {
-            return NULL;
+
+    set_coef(lp, row, col, num);
+    *row_ptr = end;
+
+    assert(lp_is_valid(lp));
+    return true;
+}
+
+/*
+ * tries to parse the constraint type of a constraint into
+ * the lp
+ * @return true if matches '<=', '>=', '==', '=', false otherwise
+ * side effects:
+ *      will increment *row_ptr
+ *      sets constraint_type[row] in lp
+ */
+bool parse_type(char** row_ptr, int row, LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    assert(row >= 0);
+    assert(row < get_rows(lp));
+    assert(NULL != row_ptr);
+
+    *row_ptr = skip_spaces(*row_ptr);
+    if (!**row_ptr) {
+        return false;
+    }
+
+    if (**row_ptr == '<') {
+        if ('=' != *(*row_ptr+1)) {
+            return false;
         }
         set_constraint_type(lp, row, LEQ);
-        s+=2;
-        return s;
+        (*row_ptr)+=2;
+        return true;
     }
 
-    if (*s == '>') {
-        if ('=' != *(s+1)) {
-            return NULL;
+    if (**row_ptr == '>') {
+        if ('=' != *(*row_ptr+1)) {
+            return false;
         }
         set_constraint_type(lp, row, GEQ);
-        s+=2;
-        return s;
+        (*row_ptr)+=2;
+        return true;
     }
 
-    if (*s == '=') {
-        if ('=' == *(s+1)) {
-            s++;
+    if (**row_ptr == '=') {
+        if ('=' == *(*row_ptr+1)) {
+            (*row_ptr)++;
         }
         set_constraint_type(lp, row, EQ);
-        s++;
-        return s;
+        (*row_ptr)++;
+        return true;
     }
 
     fprintf(stderr, "invalid constraint\n");
-    return NULL;
+    return false;
+}
+
+/*
+ * tries to parse a num_t value into
+ * the rhs at of lp at the specified row
+ * returns true on success, false otherwise
+ * side effect:
+ *      will increment *row_ptr
+ *      sets rhs[row] in lp
+ */
+bool parse_rhs(char** row_ptr, int row, LinearProgram* lp) {
+    assert(lp_is_valid(lp));
+    assert(row >= 0);
+    assert(row < get_rows(lp));
+    assert(NULL != row_ptr);
+
+    char* end = NULL;
+    num_t num = parse_num(*row_ptr, &end);
+
+    if (!is_num_valid(num, *row_ptr, end)) {
+        return false;
+    }
+
+    set_rhs(lp, row, num);
+    *row_ptr = end;
+
+    assert(lp_is_valid(lp));
+    return true;
 }
 
 /* parses a line of the file
@@ -66,41 +137,46 @@ bool parse_row(char* s, int row, LinearProgram* lp) {
     assert(row >= 0);
     assert(row < get_rows(lp));
 
-    char* end_ptr;
-    int cols = get_cols(lp);
+    int vars = get_cols(lp);
+    int coefs = 0;
 
-    int i;
-    for (i = 0; i < cols; i++) {
-        num_t num = parse_num(s, &end_ptr);
-
-        if (!is_num_valid(num, s, end_ptr)) {
-            return false;
-        }
-
-        set_coef(lp, row, i, num);
-        s = end_ptr;
+    /* read coefficients */
+    while (coefs < get_cols(lp) && parse_coef(&s, row, coefs, lp)) {
+        coefs++;
     }
 
-
-    s = parse_type(s, row, lp);
-
-    if (NULL == s) {
+    /* not at end of string */
+    if (!*s) {
         return false;
     }
 
-    num_t num = parse_num(s, &end_ptr);
-    if (!is_num_valid(num, s, end_ptr)) {
+    if (coefs != vars) {
+        fprintf(stderr, "#cols does not match #vars, expected: %d, found %d\n",vars, coefs);
         return false;
     }
-    s = end_ptr;
+
+    if (!parse_type(&s, row, lp)) {
+        fprintf(stderr, "invalid type: %s\n", s);
+        return false;
+    }
+
+    /* still not at end of string */
+    if (!*s) {
+        fprintf(stderr, "missing rhs: %s\n", s);
+        return false;
+    }
+
+    if (!parse_rhs(&s, row, lp)) {
+        fprintf(stderr, "invalid rhs: %s\n", s);
+        return false;
+    }
 
     s = skip_spaces(s);
-
-    if ('\0' != *s) {
+    /* this time make sure we really ARE at end of string */
+    if (*s) {
+        fprintf(stderr, "trailing garbage: %s\n", s);
         return false;
     }
-
-    set_rhs(lp, row, num);
 
     assert(lp_is_valid(lp));
     return true;
@@ -155,7 +231,7 @@ LinearProgram *new_lp_from_file(const char* filename) {
 
         /* line is nonempty, so try to parse data
          */
-        if (parser_state == READ_COLS) {
+        if (READ_COLS == parser_state) {
             cols = (int) strtol(s, &end_ptr, 10);
 
             if (cols <= 0) {
@@ -164,7 +240,7 @@ LinearProgram *new_lp_from_file(const char* filename) {
             }
 
             parser_state = READ_ROWS;
-        } else if (parser_state == READ_ROWS) {
+        } else if (READ_ROWS == parser_state) {
             rows = (int) strtol(s, &end_ptr, 10);
 
             if (rows <= 0) {
@@ -175,41 +251,44 @@ LinearProgram *new_lp_from_file(const char* filename) {
             lp = lp_new(rows, cols);
             parser_state = READ_CONSTRAINTS;
         } else {
-            /* stop if a row does not match the format */
             if (constraints >= rows) {
-                lp_free(lp);
-                fprintf(stderr, "too many constraints");
+                fprintf(stderr, "too many constraints\n");
                 goto read_error;
             }
 
-            bool valid_format = parse_row(s, constraints, lp);
-
-            if (!valid_format) {
-                lp_free(lp);
+            /* stop if a row does not match the format */
+            if (!parse_row(s, constraints, lp)) {
+                fprintf(stderr, "row format is invalid\n");
                 goto read_error;
             }
+
             constraints++;
         }
 
     }
-    fclose(fp);
 
     if (constraints != rows) {
         fprintf(stderr, "speciefied #(rows) does not match: %d expected, %d found\n", rows, constraints);
-        lp_free(lp);
-        return NULL;
+        goto read_error;
     }
 
     if (can_overflow(lp)) {
-        lp_free(lp);
-        return NULL;
+        fprintf(stderr, "the lp can overflow when using the current datatype for the coefficients\n");
+        goto read_error;
     }
 
     printf("%d lines\n", lines);
+
+    fclose(fp);
+    assert(lp_is_valid(lp));
     return lp;
 
 read_error:
-    printf("error in line %d\n", lines);
+    if (NULL != lp) {
+        lp_free(lp);
+    }
+
+    fprintf(stderr, "error in line %d\n", lines);
     fclose(fp);
     return NULL;
 }
