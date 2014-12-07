@@ -14,7 +14,7 @@ ERROR_TESTFILES = error_test1.dat error_test2.dat error_test3.dat error_test4.da
 	corrupted_toFewRows.dat
 CORRECT_TESTFILES = markshare_3_0.dat markshare_3_1.dat test1.dat test2.dat test3.dat onlyEq.dat geqTest.dat
 CORRECT_SOLUTIONS_PATH = ../../data/solutions/
-
+MY_TEST = julian_24x30
 BIN_SRC = src/allocate.c src/ex7.c src/linearProgram.c src/ilpParser.c
 OBJ = ex7.o ilpParser.o linearProgram.o allocate.o
 
@@ -27,15 +27,12 @@ all:
 double:
 	$(CC) $(CFLAGS) -D$(MODE) $(BIN_SRC) -o $(BIN)
 
-		
+.PHONY: check	
 check: #TODO: learn shell programming.
-	for file in $(ERROR_TESTFILES); 
-	do
-		echo "check file" $$file
-		./$(BIN) $(TESTFILE_PATH)$file
-	done;
+		./$(BIN) data/$(MY_TEST) > test_output.txt
+		diff test_output.txt output.txt
 		
-	
+.PHONY: clean
 clean:
 	rm ex7
 	rm $(COV)
