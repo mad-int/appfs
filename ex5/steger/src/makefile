@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -O3 -g -std=c99 -fprofile-arcs -ftest-coverage
+CFLAGS = -Wall -Wextra -O3 -g -std=c99 
 MODE = DOUBLE
 
 feasibles: ex5.o allocate.o ilpParser.o linearProgram.o

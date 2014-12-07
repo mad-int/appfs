@@ -37,6 +37,8 @@ struct linearProgram* createLPFromFile(const char* filename) {
 	// need a helpful string for strtok
 	char* help_me = allocate(BUF_SIZE, sizeof(*help_me));
 	char* end_pos;
+	char* test;
+	char* brks;
 	while(NULL != (s = fgets(buffer, sizeof(buffer), fp))) {
 		end_pos = strpbrk(s, "#\n\r");
 		if (NULL != end_pos) {
@@ -80,8 +82,9 @@ struct linearProgram* createLPFromFile(const char* filename) {
 			} // check which type of constraint
 			setType(*type, currentConstraint, binaryLP->types);
 			
+			// TODO WTF
 			strcpy(help_me, s);
-			if (-1 == fillRow(binaryLP->coeffs[currentConstraint], binaryLP->col, strtok(s,"><="), " ")) {
+			if (-1 == fillRow(binaryLP->coeffs[currentConstraint], binaryLP->col, strtok_r(s,"><=",&brks), " ")) {
 				// free pointer:
 				deleteLinearProgram(binaryLP);
 				deallocate(help_me);
@@ -89,8 +92,8 @@ struct linearProgram* createLPFromFile(const char* filename) {
 				printf(USAGE);
 				exit(EXIT_FAILURE);
 			}
-			char* test = strtok(help_me, "><=");
-			if(NULL == (test = strtok(NULL, " ><="))) {
+			//test = strtok(help_me, "><=");
+			if(NULL == (test = strtok_r(NULL, " ><=", &brks))) {
 				printf("No rhs in line %d.\n", lines);
 				printf(USAGE);
 				exit(EXIT_FAILURE);
@@ -161,10 +164,11 @@ int fillRow(num* row, int col, char* inputString, char* delimiter) {
 	int i = 0;
 	int asInteger;
 	float asFloat;
+	char* brki;
 	assert(NULL != inputString);
 	assert(NULL != row);
 	// Seperate each number
-	char* value = strtok(inputString, delimiter);
+	char* value = strtok_r(inputString, delimiter, &brki);
 	while (NULL != value) {
 		if (i+1 > col) {
 			printf("Number of columns more than specified in line 1!\n");
@@ -186,7 +190,7 @@ int fillRow(num* row, int col, char* inputString, char* delimiter) {
 		
 		i++;
 		// Next number
-		value = strtok(NULL, delimiter);
+		value = strtok_r(NULL, delimiter, &brki);
 	}
 	if (i < col) {
 		return -1;
