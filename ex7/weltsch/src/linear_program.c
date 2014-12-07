@@ -75,6 +75,7 @@ void lp_free(LinearProgram* lp) {
     deallocate(lp);
 }
 
+/* taken and adapted form ex6/bzfkocht/src/bip.c */
 bool can_overflow(LinearProgram* lp) {
     assert(lp_is_valid(lp));
 
