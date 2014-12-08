@@ -6,7 +6,7 @@ TYPE={int, double}
 switches between types of matrix entries [default: double]
 
 OPT={opt, dbg}
-switches between compiling modes (opt: -O3, dbg: -g) [default: -O]
+switches between compiling modes (opt: -O3, dbg: -g) [default: opt]
 
 TEST={big}
 defines name of testset for make check [default: big]
@@ -16,7 +16,7 @@ switches between enumeration methods (true: branching tree, false: naive enumera
 NOTE: the naive enumeration is the older and slower version
 
 CUTOFF={true, false}
-determines whether subtrees are cut off in the branching tree [default: false]
+determines whether subtrees are cut off in the branching tree [default: true]
 
 
 source files
