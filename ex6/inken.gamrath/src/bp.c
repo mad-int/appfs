@@ -11,8 +11,12 @@
 // #define DEBUG
 // #define MORE_DEBUG
 
-/* determines whether the binary program data is valid */
-static bool bp_is_valid(const BinaryProgram* bp)
+/*
+ * determines whether the binary program data is valid
+ */
+static bool bp_is_valid(
+   const BinaryProgram* bp          /**< binary program */
+)
 {
    return bp != NULL
       && bp->n > 0 && bp->m >= 0
@@ -20,8 +24,13 @@ static bool bp_is_valid(const BinaryProgram* bp)
       && bp->coefs != NULL && bp->rhs != NULL;
 }
 
-/* creates a new binary program */
-BinaryProgram* bp_new(int m, int n)
+/*
+ * creates a new binary program
+ */
+BinaryProgram* bp_new(
+   int m,                           /**< dimension of rows */
+   int n                            /**< dimension of columns */
+)
 {
    BinaryProgram* bp;
 
@@ -41,8 +50,12 @@ BinaryProgram* bp_new(int m, int n)
    return bp;
 }
 
-/* frees binary program data */
-void bp_free(BinaryProgram* bp)
+/*
+ * frees binary program data
+ */
+void bp_free(
+   BinaryProgram* bp          /**< binary program */
+)
 {
    assert(bp_is_valid(bp));
 
@@ -51,8 +64,14 @@ void bp_free(BinaryProgram* bp)
    deallocate(bp);
 }
 
-/* adds a new row (constraint) */
-BP_RETCODE bp_put(BinaryProgram* bp, TYPE* coefs, TYPE rhs)
+/*
+ * adds a new row (constraint)
+ */
+BP_RETCODE bp_put(
+   BinaryProgram* bp,          /**< binary program */
+   TYPE* coefs,                /**< array of coefficients */
+   TYPE rhs                    /**< right hand side */
+)
 {
    assert(bp_is_valid(bp));
 
@@ -307,8 +326,12 @@ BP_RETCODE bp_put(BinaryProgram* bp, TYPE* coefs, TYPE rhs)
    return BP_OKAY;
 }
 
-/* gets the number of rows (constraints) */
-int bp_getM(BinaryProgram* bp)
+/*
+ * gets the number of rows (constraints)
+ */
+int bp_getM(
+   BinaryProgram* bp          /**< binary program */
+)
 {
    assert(bp_is_valid(bp));
 
@@ -316,8 +339,12 @@ int bp_getM(BinaryProgram* bp)
 }
 
 #if 0
-/* gets the number of columns (variables) */
-int bp_getN(BinaryProgram* bp)
+/*
+ * gets the number of columns (variables)
+ */
+int bp_getN(
+   BinaryProgram* bp          /**< binary program */
+)
 {
    assert(bp_is_valid(bp));
 
@@ -326,8 +353,12 @@ int bp_getN(BinaryProgram* bp)
 #endif
 
 #if 0
-/* gets entries of the binary program */
-TYPE* bp_getCoefs(BinaryProgram* bp)
+/*
+ * gets entries of the binary program
+ */
+TYPE* bp_getCoefs(
+   BinaryProgram* bp          /**< binary program */
+)
 {
    assert(bp_is_valid(bp));
 
@@ -336,8 +367,12 @@ TYPE* bp_getCoefs(BinaryProgram* bp)
 #endif
 
 #if 0
-/* gets right-hand sides of the constraints */
-TYPE* bp_getRhs(BinaryProgram* bp)
+/*
+ * gets right-hand sides of the constraints
+ */
+TYPE* bp_getRhs(
+   BinaryProgram* bp          /**< binary program */
+)
 {
    assert(bp_is_valid(bp));
 
@@ -346,8 +381,12 @@ TYPE* bp_getRhs(BinaryProgram* bp)
 #endif
 
 #if 0
-/* gets maximal number of rows (constraints) */
-int bp_getSize(BinaryProgram* bp)
+/*
+ * gets maximal number of rows (constraints)
+ */
+int bp_getSize(
+   BinaryProgram* bp          /**< binary program */
+)
 {
    assert(bp_is_valid(bp));
 
@@ -355,8 +394,12 @@ int bp_getSize(BinaryProgram* bp)
 }
 #endif
 
-/* gets redundant number of rows (constraints) */
-int bp_getRedundant(BinaryProgram* bp)
+/*
+ * gets redundant number of rows (constraints)
+ */
+int bp_getRedundant(
+   BinaryProgram* bp          /**< binary program */
+)
 {
    assert(bp_is_valid(bp));
 
@@ -364,8 +407,12 @@ int bp_getRedundant(BinaryProgram* bp)
 }
 
 #if 0
-/* determines whether the binary program is empty */
-bool bp_is_empty(const BinaryProgram* bp)
+/*
+ * determines whether the binary program is empty
+ */
+bool bp_is_empty(
+   const BinaryProgram* bp          /**< binary program */
+)
 {
    assert(bp_is_valid(bp));
 
@@ -374,11 +421,15 @@ bool bp_is_empty(const BinaryProgram* bp)
 #endif
 
 #ifndef BRANCHING
-/* solves the binary program
+/*
+ * solves the binary program
  * returns BP_OKAY, if a solution is found
  * returns BP_INFEASIBLE otherwise
  */
-BP_RETCODE solveBP(BinaryProgram* bp, FILE* fp)
+BP_RETCODE solveBP(
+   BinaryProgram* bp,          /**< binary program */
+   FILE* fp                    /**< output file */
+)
 {
    long int count = 0;
    int* values;
@@ -395,9 +446,11 @@ BP_RETCODE solveBP(BinaryProgram* bp, FILE* fp)
 
    length = pow(2, bp->n);
    count = length;
+   /* for all vectors */
    for (long int i = 0; i < length; i++)
    {
       p = i;
+      /* create vector */
       for (int k = 0; k < bp->n; k++)
       {
          values[k] = p % 2;
@@ -406,24 +459,29 @@ BP_RETCODE solveBP(BinaryProgram* bp, FILE* fp)
 #ifdef DEBUG
       valid = true;
 #endif
+      /* for all constraints */
       for (int j = 0; j < bp->m; j++)
       {
          sum = 0.0;
+         /* compute left-hand side of the constraint */
          for (int k = 0; k < bp->n; k++)
          {
             sum += bp->coefs[j*bp->n+k] * values[k];
          }
+         /* check constraint for infeasibility */
          if (sum > bp->rhs[j])
          {
 #ifdef DEBUG
             valid = false;
 #endif
+            /* decrease number of possible feasible solutions */
             count--;
             break;
          }
       }
 #ifdef DEBUG
 #ifndef MORE_DEBUG
+      /* print solution */
       if (valid)
       {
 #endif
@@ -448,6 +506,7 @@ BP_RETCODE solveBP(BinaryProgram* bp, FILE* fp)
 #endif
 #endif
    }
+   /* free vector */
    deallocate(values);
    assert(bp_is_valid(bp));
 
@@ -459,23 +518,29 @@ BP_RETCODE solveBP(BinaryProgram* bp, FILE* fp)
 }
 
 #else
-/* solves the BP with Branching
+/*
+ * solves the BP with Branching
  * returns BP_OKAY, if a solution is found
  * returns BP_INFEASIBLE otherwise
  */
-BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
+BP_RETCODE solveBT(
+   BinaryProgram* bp,          /**< binary program */
+   FILE* fp                    /**< output file */
+)
 {
    long int count = 0;
 
    /* check whether there are only redundant constraint in the bp */
    if (bp->m == 0)
    {
+      /* set number of feasible solutions */
       count = pow(2, bp->n);
 #ifdef DEBUG
-      long int length = pow(2, bp->n);
+      long int length = count;
       long int p;
       char* currsol;
       currsol = allocate(2*bp->n, sizeof(*currsol));
+      /* print all solutions */
       for (long int i = 0; i < length; i++)
       {
          p = i;
@@ -494,6 +559,7 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
       return BP_OKAY;
    }
 
+   /* allocate arrays */
    TYPE* lhs = allocate(bp->m, sizeof(*lhs));
 #ifdef CUTOFF
    TYPE* min = allocate(bp->m, sizeof(*min));
@@ -526,6 +592,7 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
    /* add coefficients of first variable to fixing */
    for (int i = 0; i < bp->m; i++)
       lhs[i] += bp->coefs[i*bp->n+0];
+
    /* branch on first variable => false */
 #ifdef DEBUG
    sprintf(sol, "1");
@@ -550,6 +617,7 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
    count += branch(fp, bp, lhs, NULL, NULL, depth+1, sol);
 #endif
 
+   /* free arrays */
 #ifdef DEBUG
    deallocate(sol);
 #endif
@@ -567,7 +635,15 @@ BP_RETCODE solveBT(BinaryProgram* bp, FILE* fp)
 }
 
 /*  */
-int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int depth, char* sol)
+int branch(
+   FILE* fp,                   /**< output file */
+   BinaryProgram* bp,          /**< binary program */
+   TYPE* lhs,                  /**< value of left-hand side of the constraint */
+   TYPE* min,                  /**< minimal activity of the constraint */
+   TYPE* max,                  /**< maximal activity of the constraint */
+   int depth,                  /**< depth in the tree */
+   char* sol                   /**< fixed part of the solution */
+)
 {
    long int count = 0;
 #ifdef CUTOFF
@@ -590,22 +666,26 @@ int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int dep
 
    int i;
 #ifndef CUTOFF
+   /* if CUTOFF not defined, check only leaves */
    if (depth == bp->n)
    {
 #endif /* !CUTOFF */
       for (i = 0; i < bp->m; i++)
       {
 #ifdef CUTOFF
+         /* check activities */
          if (lhs[i] + min[i] > bp->rhs[i])
             break;
          if (lhs[i] + max[i] > bp->rhs[i])
             unrestricted = false;
 #else /* CUTOFF */
+         /* check feasibility of constraint */
          if (lhs[i] > bp->rhs[i])
             break;
 #endif /* CUTOFF */
       }
 
+      /* when all solutions were feasible */
       if (i == bp->m )
       {
 #ifdef CUTOFF
@@ -614,6 +694,7 @@ int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int dep
             if (depth == bp->n)
             {
 #endif /* CUTOFF */
+               /* add one feasible solution */
                count++;
 #ifdef DEBUG
                fprintf(fp, "%s\n", sol);
@@ -622,6 +703,7 @@ int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int dep
             }
             else
             {
+               /* when subtree was cut off, add all solutions of subtree */
 #ifdef DEBUG
                long int length = pow(2, bp->n - depth);
                long int p;
@@ -648,11 +730,13 @@ int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int dep
 
       }
 #ifdef CUTOFF
+      /* when CUTOFF is defined, do not branch further, when subtree is infeasible */
       else
          return count;
 #endif /* CUTOFF */
 #ifndef CUTOFF
    }
+   /* further branching */
    else
    {
 #else /* !CUTOFF */
@@ -676,7 +760,8 @@ int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int dep
       /* add coefficients of first variable to fixing */
       for (int i = 0; i < bp->m; i++)
          lhs[i] += bp->coefs[i*bp->n+depth];
-      /* branch on first variable => false */
+
+      /* branch on next variable => false */
 #ifdef DEBUG
       i = sprintf(bsol, "%s 1", sol);
       assert(i < 2*bp->n);
@@ -691,7 +776,7 @@ int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int dep
       for (int i = 0; i < bp->m; i++)
          lhs[i] -= bp->coefs[i*bp->n+depth];
 
-   /* branch on first variable => true */
+   /* branch on next variable => true */
 #ifdef DEBUG
       i = sprintf(bsol, "%s 0", sol);
       assert(i < 2*bp->n);
@@ -701,6 +786,7 @@ int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int dep
 #else /* CUTOFF */
       count += branch(fp, bp, lhs, NULL, NULL, depth+1, bsol);
 #endif /* CUTOFF */
+
       /* update min and max */
 #ifdef CUTOFF
       for (i = 0; i < bp->m; i++)
@@ -709,6 +795,7 @@ int branch(FILE* fp, BinaryProgram* bp, TYPE* lhs, TYPE* min, TYPE* max, int dep
          min[i] += MIN(bp->coefs[i*bp->n+depth], 0.0);
       }
 #endif /* CUTOFF */
+
 #ifdef DEBUG
       deallocate(bsol);
 #endif /* DEBUG */

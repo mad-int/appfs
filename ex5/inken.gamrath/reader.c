@@ -166,7 +166,7 @@ int process_file(const char* filename, Matrix** matrix)
 
             /* copy relation operator */
             assert(strlen(tok) <= 2);
-            strncpy(relation, tok, sizeof(relation));
+            strncpy(relation, tok, sizeof(relation)-1);
 
             /* get next token, which is right-hand side */
             tok = strtok(NULL, delimiter);

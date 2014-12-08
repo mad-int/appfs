@@ -8,12 +8,15 @@
 #include "bp.h"
 #include "misc.h"
 
-/* read problem data from file
- * returns amount of lines
- * returns BP_INVALIDDATA when there was a reading error
- * returns BP_INFEASIBLE when the problem is infeasible
- */
-BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
+/**
+  * read problem data from file
+  * returns amount of lines
+  * returns BP_INVALIDDATA when there was a reading error
+  * returns BP_INFEASIBLE when the problem is infeasible
+  */
+BP_RETCODE process_file(
+   const char* filename, BinaryProgram** bp /**< binary program */
+)
 {
    assert(NULL != filename);
    assert(0 < strlen(filename));
@@ -68,12 +71,14 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
          case 1:
          {
             n = strtol(tok, &test, 10);
+            /* when test not empty, then the data type of the dimension was not correct */
             if ((int)strlen(test) != 0)
             {
                fprintf(stderr, "Wrong input data for number of variables.\n");
                fclose(fp);
                return BP_INVALIDDATA;
             }
+            /* return, when the dimension of the columns is too small or too large */
             if (n <= 0 || n > MAX_MATRIX_SIZE)
             {
                fprintf(stderr, "Dimension of columns is not right. (%i not in {1, ..., %i})\n", n, MAX_MATRIX_SIZE);
@@ -81,6 +86,7 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
                return BP_INVALIDDATA;
             }
             tok = strtok(NULL, delimiter);
+            /* return, when there is an additional entry in the line */
             if (tok != NULL)
             {
                fprintf(stderr, "Too many arguments for number of columns.\n");
@@ -96,6 +102,7 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
          case 2:
          {
             m = strtol(tok, &test, 10);
+            /* when test not empty, then the data type of the dimension was not correct */
             if ((int)strlen(test) != 0)
             {
                fprintf(stderr, "Wrong input data for number of constraints.\n");
@@ -103,6 +110,7 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
                fclose(fp);
                return BP_INVALIDDATA;
             }
+            /* return, when the dimension of the rows is too small or too large */
             if (m <= 0 || m > MAX_MATRIX_SIZE)
             {
                fprintf(stderr, "Dimension of rows is not right. (%i not in {1, ..., %i})\n", m, MAX_MATRIX_SIZE);
@@ -111,6 +119,7 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
                return BP_INVALIDDATA;
             }
             tok = strtok(NULL, delimiter);
+            /* return, when there is an additional entry in the line */
             if (tok != NULL)
             {
                fprintf(stderr, "Too many arguments for number of rows.\n");
@@ -127,19 +136,25 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
          {
             assert(m != -1 || n != -1 ||  coefs != NULL);
 
+            /* while the current tok is not the relation sign, add coefficient to coefficient array */
             while(tok != NULL
                && strcmp(tok, "<=") != 0 && strcmp(tok, "=<") != 0
                && strcmp(tok, ">=") != 0 && strcmp(tok, "=>") != 0
                && strcmp(tok, "==") != 0 && strcmp(tok, "=") != 0)
             {
+               /* when j >= n, then we have too many coefficient entries in this line or no relation sign */
                if (j >= n)
                {
-                  fprintf(stderr, "Too many coefficients or no relation sign.\n");
+                  fprintf(stderr, "Too many coefficients or no relation sign in line %i.\n", lines);
                   deallocate(coefs);
                   fclose(fp);
                   return BP_INVALIDDATA;
                }
+
+               /* insert value in coefficient array */
                coefs[j] = strtov(tok, &test);
+
+               /* when test not empty, then the data type of the coefficient was not correct */
                if ((int)strlen(test) != 0)
                {
                   fprintf(stderr, "Wrong input data in line %i. Wrong type of coefficient (%s) of variable %i.\n", lines, tok, j+1);
@@ -217,6 +232,7 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
                }
                assert(retcode == BP_OKAY);
             }
+            /* reverse constraint if sign is not "<=" */
             if (strcmp(relation, ">=") == 0 || strcmp(relation, "=>") == 0 || strcmp(relation, "=") == 0 || strcmp(relation, "==") == 0)
             {
                for (int k = 0; k < n; k++)
@@ -231,6 +247,7 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
                }
                assert(retcode == BP_OKAY);
             }
+            /* increase m, if sign of original constraint was "=" */
             if (strcmp(relation, "=") == 0 || strcmp(relation, "==") == 0)
                m++;
 
@@ -246,16 +263,18 @@ BP_RETCODE process_file(const char* filename, BinaryProgram** bp)
          }
       }
    }
+   /* deallocate array */
    deallocate(coefs);
 
+   /* check whether we have not enough rows */
    if (bp_getM(*bp) + bp_getRedundant(*bp) < m)
    {
-      printf("%i + %i < %i\n", bp_getM(*bp), bp_getRedundant(*bp), m);
       fprintf(stderr, "Not enough rows.\n");
       fclose(fp);
       return BP_INVALIDDATA;
    }
 
+   /* close file */
    fclose(fp);
 
    return BP_OKAY;

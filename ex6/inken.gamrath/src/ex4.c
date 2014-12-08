@@ -10,7 +10,10 @@
 #include "reader.h"
 
 
-int main(int argc, char** argv)
+int main(
+   int argc,               /**< number of arguments */
+   char** argv             /**< argument array */
+)
 {
    BinaryProgram* bp = NULL;       /* problem data */
    FILE* fp;                       /* output file */
