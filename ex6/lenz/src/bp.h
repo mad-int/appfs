@@ -32,9 +32,8 @@ Value calcMinActivity(BP* prob, int i);
    and counts redundant constraint */
 void subsConstraint( BP* prob, int i );
 
-/* simple preprocessing, removes redundant constraints.
-   If a constraint is redundant, it is substituted by
-   the last one and the last constraint is removed */
+/* simple preprocessing, removes redundant constraints
+   or detects simple infeasibility. */
 void preprocessing( BP* prob );
 
 #endif // _BP_H_
