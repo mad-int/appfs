@@ -25,6 +25,7 @@ int main(int argc, char** argv)
 
     /* simple preprocessing: remove redundant constraints */
     preprocessing( prob );
+    print_problem(prob);
 
     /* generate Gray Code and print feas sols */
     genGrayCode( prob );
