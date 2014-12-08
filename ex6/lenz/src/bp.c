@@ -116,17 +116,17 @@ void subsConstraint( BP* prob, int i )
 
 
 /* simple preprocessing, removes redundant constraints
-   or detects simple infeasibility.
-   If a constraint is redundant, it is substituted by
-   the last one and the last constraint is removed */
+   or detects simple infeasibility. */
 void preprocessing( BP* prob )
 {
-    int i;
+    int i, j;
     int cntRed = 0; /* number of redundant constraints */
     Value maxActivity;
     Value minActivity;
     assert( NULL != prob);
 
+    /* obvious redundancy because of min/max activity
+       or rather infeasibility detection */
     for( i = 0; i < prob->nconss; ++i )
     {
         assert( 'R' != prob->rhs[i] );
@@ -167,5 +167,139 @@ void preprocessing( BP* prob )
             }
         }
     }
-    printf("Preprocessing removed %2d constraints due to maxActivity/minActivity.\n", cntRed);
+
+    /* Redundancy between constraints */
+
+    /* indicates when a constraint has changed such that
+     * inner constraint loop should be left */
+    bool stop;
+    /* checks if rhs = 0 of current constraint */
+    bool rhsZero = false;
+    for( i = 0; i < prob->nconss-1 ; ++i )
+    {
+        if( 0 == prob->rhs[i] )
+            rhsZero = true;
+
+        int k;
+        stop = false;
+
+        for( k = i+1; k < prob->nconss && !stop; ++k )
+        {
+            /* both constraints have to have rhs = 0 or
+            rhs != 0 at the same time */
+            if( true == rhsZero )
+            {
+                if( 0 != prob->rhs[k] )
+                    continue;
+            }
+            else if( false == rhsZero )
+            {
+                if( 0 == prob->rhs[k] )
+                    continue;
+            }
+
+            double coeff1, coeff2, val1, val2;
+            bool indRedund = false;
+	    bool changeType;
+
+            for( j = 0; j < prob->nvars; ++j)
+            {
+                coeff1 = prob->conss[i][j];
+                coeff2 = prob->conss[k][j];
+
+                if( 0 == coeff1 && 0 == coeff2 )
+		    continue;
+
+                if( coeff1 != 0 && coeff2 == 0)
+                    break;
+                else if ( coeff1 == 0 && coeff2 != 0 )
+                    break;
+
+                assert( coeff1 != 0 && coeff2 != 0 );
+
+                if( rhsZero == true )
+                {
+                    bool relCheck = false;
+
+		    /* this if-clause is skipped in the 1st iteration
+		       and from then on true, since val1 hast to be set
+		       in the 1st iteration */
+                    if( true == relCheck )
+                    {
+			if( val1 == coeff1/coeff2 )
+			    indRedund = true;
+			else
+			    break;	
+                    }
+                    else
+			val1 = coeff2/coeff1;
+
+                    relCheck = true;
+                }
+                else
+                {
+                    val1 = coeff1/ prob->rhs[i];
+                    val2 = coeff2/ prob->rhs[k];
+
+                    if( val1 == val2 )
+                    {
+                        if( coeff1 == -coeff2 )
+                        {
+			    if( prob->eq_type[i] == 'L' && prob->eq_type[k] == 'L' )
+				changeType = true;
+                        }
+			indRedund = true;
+                    }
+                    else
+                    {
+                        indRedund = false;
+                        break;
+                    }
+                }
+            } // for nvars
+
+            /* case distinction */
+            if( true == indRedund )
+            {
+                if( 'E' == prob->eq_type[i] && 'E' == prob->eq_type[k] )
+                {
+                    subsConstraint( prob, i );
+                    ++cntRed;
+                    --i;
+                    stop = true;
+                    break;
+                }
+                else if( 'E' == prob->eq_type[i] && 'L' == prob->eq_type[k] )
+                {
+                    subsConstraint( prob, k );
+
+                    --k;
+                    ++cntRed;
+                }
+                else if( 'L' == prob->eq_type[i] && 'E' == prob->eq_type[k] )
+                {
+                    subsConstraint( prob, i );
+                    ++cntRed;
+                    --i;
+                    stop = true;
+                    break;
+                }
+                else if( 'L' == prob->eq_type[i] && 'L' == prob->eq_type[k] )
+                {
+                    if( true == changeType )
+		    {
+			prob->eq_type[k] = 'E';
+		    }
+		    subsConstraint( prob, i );
+                    ++cntRed;
+                    --i;
+                    stop = true;
+                    break;
+                }
+            }
+        } // for( 1 = k < prob->nconss )
+        rhsZero = false;
+    } // for( 0 = i < prob->nconss-1 )
+
+    printf("Preprocessing removed %2d constraints at all.\n", cntRed);
 }

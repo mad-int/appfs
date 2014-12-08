@@ -1,11 +1,11 @@
 CC = gcc
-CFLAGS = -Wall -O2 -fprofile-arcs -ftest-coverage
+CFLAGS = -Wall -O3 -fprofile-arcs -ftest-coverage
 # INTEGER for integer arithmetic or DOUBLE for double arithmetic
 MODE = DOUBLE
 
 prog: ex4.o linear_program.o allocate.o
 	$(CC) $(CFLAGS) -o prog ex4.o linear_program.o allocate.o
-	ln -s prog ex5
+	ln -sf prog ex5
 
 ex4.o: src/ex4.c
 	$(CC) $(CFLAGS) -c src/ex4.c
