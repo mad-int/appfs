@@ -6,6 +6,7 @@ SHELL		=	/bin/bash
 
 OPT		=	opt
 EX		=	ex6
+TYPE		=	double
 
 WFLAGS		=	-Wextra -Wpedantic -Wuninitialized -Wbad-function-cast -Wcast-qual -Wcast-align -Wwrite-strings -Wstrict-overflow=0 -Wstrict-overflow=1 -Wstrict-overflow=2 -Wstrict-overflow=3 -Wstrict-overflow=4 -Wstrict-overflow=5
 #-Wfloat-equal
@@ -40,7 +41,7 @@ MAKE		=	-O3
 endif
 
 BRANCHING	=	true
-CUTOFF		=	false
+CUTOFF		=	true
 CFLAGS		=
 
 ifeq ($(TYPE),int)
@@ -53,21 +54,21 @@ CFLAGS		+=	-D DOUBLE
 #endif
 endif
 
-BASE		=	$(TYPE).$(OPT)
-
+BRANCH		=
 ifeq ($(BRANCHING),true)
 CFLAGS		+=	-D BRANCHING
-BASE		+=	.branching
+BRANCH		=	.branching
 endif
 
+CUT		=
 ifeq ($(CUTOFF),true)
 CFLAGS		+=	-D CUTOFF
 ifeq ($(BRANCHING),true)
-BASE		+=	.cutoff
+CUT		=	.cutoff
 endif
 endif
 
-BASE		+=	.$(OPT)
+BASE		=	$(TYPE)$(BRANCH)$(CUT).$(OPT)
 
 OBJDIR		=	obj/O.$(BASE)
 BINDIR		=	bin
@@ -108,7 +109,7 @@ $(OBJDIR)/%.o:	$(SRCDIR)/%.c
 $(EX):		$(OBJDIR) $(BINDIR) $(MAINOBJFILES)
 		@echo "-> linking $@"
 		@$(CXX) $(MAKE) $(CFLAGS) -mtune=native -fomit-frame-pointer -m64 $(MAINOBJFILES) -o $(BINDIR)/$(MAINNAME)
-		ln -sf $(BINDIR)/$(MAINNAME) $(BINDIR)/$(EX)
+		ln -sf $(MAINNAME) $(BINDIR)/$(EX)
 		ln -sf $(BINDIR)/$(EX) $(EX)
 
 .PHONY: clean
