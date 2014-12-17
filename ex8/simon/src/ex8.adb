@@ -44,7 +44,6 @@ begin
    while not Seq_I32_IO.End_Of_File (File) loop
       -- assumption: little endian system
       Seq_I32_IO.Read (File, value);
-      -- Put_Line ("Integer a: " & Integer_32'Image (value));
 
       -- store only positive values
       if (value >= 0) then
