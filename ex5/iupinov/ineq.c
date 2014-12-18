@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <ctype.h>
+#include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,13 +36,16 @@ int readInt(char **line, int *result)
 	assert(result);	
 	int offset = 0;
 	int r = 1;
-	if (line && *line)
-		r = (sscanf(*line, " %d%n", result, &offset) == 1) ? 0 : 1;
-	char *test = *line + offset;
-	if (!r && *test)
-		r = !isspace(*test);
-	if (!r)
-		*line = test;
+	if (line)
+	{
+		if (*line)
+			r = (sscanf(*line, " %d%n", result, &offset) == 1) ? 0 : 1;
+		char *test = *line + offset;
+		if (!r && *test)
+			r = !isspace(*test);
+		if (!r)
+			*line = test;
+	}
 	return r;
 }
 
@@ -53,13 +57,16 @@ int readNumber(char **line, NumberType *result)
 	assert(result);
 	int offset = 0;
 	int r = 1;
-	if (line && *line)	
-		r = (sscanf(*line, NUMBER_FORMAT, result, &offset) == 1) ? 0 : 1;
-	char *test = *line + offset;
-	if (!r && *test)
-		r = !isspace(*test);
-	if (!r)
-		*line = test;
+	if (line)
+	{
+		if (*line)	
+			r = (sscanf(*line, NUMBER_FORMAT, result, &offset) == 1) ? 0 : 1;
+		char *test = *line + offset;
+		if (!r && *test)
+			r = !isspace(*test);
+		if (!r)
+			*line = test;
+	}
 	return r;
 }
 
@@ -107,11 +114,14 @@ int readConditionType(char **line, int *result)
 struct IneqConstraint *AllocateIneqConstraints(int count, int variablesCount)
 {
 	struct IneqConstraint *result = calloc(count, sizeof(result[0]));
-	int i;
-	for (i = 0; i < count; ++i)
+	if (result)
 	{
-		result[i].coefficients = calloc(variablesCount, member_size(struct IneqConstraint, coefficients[0]));
+		int i;
+		for (i = 0; i < count; ++i)
+		{
+			result[i].coefficients = calloc(variablesCount, member_size(struct IneqConstraint, coefficients[0]));
 		//result[i].variablesCount = variablesCount;	
+		}	
 	}	
 	return result;
 }
@@ -160,23 +170,28 @@ int ReadIneqSystemData(FILE *file, struct IneqSystem **system)
 		{
 			int stop = 0;			
 			(*system)->constraints = AllocateIneqConstraints((*system)->constraintsCount, (*system)->variablesCount);
-			int i, j;	
-			for (i = 0; i < (*system)->constraintsCount; ++i)
-			{
-				line = readLine(file);
-				for (j = 0; j < (*system)->variablesCount; ++j)
+			if ((*system)->constraints)
+			{	
+				int i, j;	
+				for (i = 0; i < (*system)->constraintsCount; ++i)
 				{
-					stop = readNumber(&line, &(*system)->constraints[i].coefficients[j]);
-					if (stop)
-						break;				
+					line = readLine(file);
+					for (j = 0; j < (*system)->variablesCount; ++j)
+					{
+						stop = readNumber(&line, &(*system)->constraints[i].coefficients[j]);
+						if (stop)
+							break;				
+					}
+					if (!stop)
+						stop = readConditionType(&line, &(*system)->constraints[i].condition);
+					if (!stop)				
+						stop = readNumber(&line, &(*system)->constraints[i].conditionValue);
+					if (stop)					
+						break; 		
 				}
-				if (!stop)
-					stop = readConditionType(&line, &(*system)->constraints[i].condition);
-				if (!stop)				
-					stop = readNumber(&line, &(*system)->constraints[i].conditionValue);
-				if (stop)					
-					break; 		
 			}
+			else 
+				stop=1;
 			result = stop;
 			if (stop)
 					DeallocateIneqSystem(*system);
@@ -209,9 +224,9 @@ int TestSolutionForConstraint(const struct IneqConstraint *constraint, const str
 	sum -= (long double)constraint->conditionValue; // rounding?
 	int result = 0;	
 	if (constraint->condition & COND_LESS_OR_EQUAL)
-		result |= (sum > 1e-5);
+		result |= (sum > DBL_MIN);
 	if (constraint->condition & COND_GREATER_OR_EQUAL)
-		result |= (sum < 1e-5);	
+		result |= (sum < -DBL_MIN);	
 	return result;
 }
 

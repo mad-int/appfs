@@ -36,7 +36,7 @@ cov:
 	genhtml cov/coverage.info --output-directory cov
 
 clean:
-	rm -f *.o ex7 negn
+	rm -f *.o ex7
 	rm -f *.gcda *.gcno cov/coverage.info
 	rm -rf cov/
 

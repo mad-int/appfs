@@ -7,6 +7,29 @@
 
 #define GET_SEC(a, b) ((b - a) / (double)CLOCKS_PER_SEC)
 
+/*
+ * I print all the feasible vectors right now.
+ * This is bad for time measurement
+ * (one don't want the print-time to interfere),
+ * but the testcase rely on this behaviour.
+ * (run_check.sh that is called on "make check".)
+ *
+ * Comment print_binvec() below for time measurement.
+ */
+
+/* In one exercise, we should split our enumeration-program over multiple files.
+ * I decided to have the enumeration-functionality here in this file
+ * and the constraint-handling stuff in constr.[ch]
+ * in such a way that this USE_DOUBLE and USE_INT define-compile-flag
+ * only has effects in constr.c and not here,
+ * to keep this complexity there.
+ *
+ * But in the last exercise with the "column"-optimization
+ * (with n and neg n) this design decision wore off a bit.
+ * (If it was any good at all.)
+ * For this reason I had to introduce
+ * this ugly state-parameter in is_feasible_bitflip().
+ */
 
 //
 
@@ -40,14 +63,21 @@ int main(int argc, char** argv)
 
   clock_t start = clock();
   uint32_t runs = 0;
+  size_t sols = 0; // solutions found
 
   binvec_t x = { .data = 0 };
   void *state = NULL;
 
+  // Do the old is_feasible()-check only for coverage purposes.
+  is_feasible(Ab, x);
+
   // Zero is a kind of special case as no bit was flipped, yet.
   // Check it first.
   if(is_feasible_bitflip(Ab, x, 0, &state))
+  {
     print_binvec(x, Ab.cols);
+    sols++;
+  }
 
   // On bit-level (here for cols == 4):
   // n = 0001 and negn is all ones: negn = 1111;
@@ -66,11 +96,25 @@ int main(int argc, char** argv)
     uint32_t updatemask = n & negn;
     x.data ^= updatemask;
 
-    //if(is_feasible(Ab, x))
-    //  print_binvec(x, Ab.cols);
+    /* For time measurement you may want to comment
+     * "print_binvec()" below, but caution
+     * this will break the testcase in run_checks.sh,
+     * that check if the calculation is correct!
+     * They rely on this output.
+     */
+
+    /* This is the old way.
+    if(is_feasible(Ab, x))
+    {
+      print_binvec(x, Ab.cols);
+      sols++;
+    }*/
 
     if(is_feasible_bitflip(Ab, x, updatemask, &state))
+    {
       print_binvec(x, Ab.cols);
+      sols++;
+    }
   }
 
   /* "runs" counted only the loop runs.
@@ -80,6 +124,7 @@ int main(int argc, char** argv)
   double elapsed = GET_SEC(start, clock());
   printf("Checked %d vectors in %.3f s = %.3f kvecs/s\n",
       runs+1, elapsed, runs / elapsed / 1000.0);
+  printf("%ld feasible vectors found.\n", sols);
 
   free_constraints(Ab);
   if(NULL != state)

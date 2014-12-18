@@ -17,20 +17,24 @@ do
    for student in ${students[@]}
    do
       cd "$student"
+      echo
       echo "compiling code for $student"
       make clean
-      make
-
-      for test in ${tests[@]}
-      do
-         if [ $student = "ex6/schrezenmaier" ] || [ $student = "ex5/schrezenmaier" ]; then
-            ./$ex $test sol
-         else
-            ./$ex $test
-         fi
-      done
+      rm -rf $home/scan/$student
+      mkdir -p $home/scan/$ex
+      scan-build -k -o $home/scan/$student make
 
       if [ $coverage -eq 1 ]; then
+
+         for test in ${tests[@]}
+         do
+            if [ $student = "ex6/schrezenmaier" ] || [ $student = "ex5/schrezenmaier" ]; then
+               ./$ex $test sol
+            else
+               ./$ex $test
+            fi
+         done
+
          mkdir -p cov/
          # location of compiled code is not known - try some...
          lcov -d obj/ -c -o cov/coverage.info
