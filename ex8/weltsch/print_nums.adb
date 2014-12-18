@@ -22,10 +22,18 @@ begin
         return;
     end if;
 
-    Open(Input_File,
-         In_File,
-         Ada.Command_Line.Argument(1));
-    Input_Stream := Stream(Input_File);
+    begin
+        Open(Input_File,
+             In_File,
+             Ada.Command_Line.Argument(1));
+        Input_Stream := Stream(Input_File);
+    exception
+        when E: others => begin
+            Ada.Text_IO.Put_Line("Can't open file " & Ada.Command_Line.Argument(1));
+            Ada.Command_Line.Set_Exit_Status(Ada.Command_Line.Failure);
+            return;
+        end;
+    end;
 
     -- go through the file and check the entries in the array
     while not End_Of_File(Input_File) loop
