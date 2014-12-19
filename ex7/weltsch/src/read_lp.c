@@ -31,9 +31,9 @@ char* skip_spaces(char* s) {
 bool parse_coef(char **row_ptr, int row, int col, LinearProgram* lp) {
     assert(lp_is_valid(lp));
     assert(row >= 0);
-    assert(row < get_rows(lp));
+    assert(row < lp_get_rows(lp));
     assert(col >= 0);
-    assert(col < get_cols(lp));
+    assert(col < lp_get_cols(lp));
     assert(NULL != row_ptr);
 
     char* end = NULL;
@@ -43,7 +43,7 @@ bool parse_coef(char **row_ptr, int row, int col, LinearProgram* lp) {
         return false;
     }
 
-    set_coef(lp, row, col, num);
+    lp_set_coef(lp, row, col, num);
     *row_ptr = end;
 
     assert(lp_is_valid(lp));
@@ -61,7 +61,7 @@ bool parse_coef(char **row_ptr, int row, int col, LinearProgram* lp) {
 bool parse_type(char** row_ptr, int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
     assert(row >= 0);
-    assert(row < get_rows(lp));
+    assert(row < lp_get_rows(lp));
     assert(NULL != row_ptr);
 
     *row_ptr = skip_spaces(*row_ptr);
@@ -73,7 +73,7 @@ bool parse_type(char** row_ptr, int row, LinearProgram* lp) {
         if ('=' != *(*row_ptr+1)) {
             return false;
         }
-        set_constraint_type(lp, row, LEQ);
+        lp_set_constraint_type(lp, row, LEQ);
         (*row_ptr)+=2;
         return true;
     }
@@ -82,7 +82,7 @@ bool parse_type(char** row_ptr, int row, LinearProgram* lp) {
         if ('=' != *(*row_ptr+1)) {
             return false;
         }
-        set_constraint_type(lp, row, GEQ);
+        lp_set_constraint_type(lp, row, GEQ);
         (*row_ptr)+=2;
         return true;
     }
@@ -91,7 +91,7 @@ bool parse_type(char** row_ptr, int row, LinearProgram* lp) {
         if ('=' == *(*row_ptr+1)) {
             (*row_ptr)++;
         }
-        set_constraint_type(lp, row, EQ);
+        lp_set_constraint_type(lp, row, EQ);
         (*row_ptr)++;
         return true;
     }
@@ -111,7 +111,7 @@ bool parse_type(char** row_ptr, int row, LinearProgram* lp) {
 bool parse_rhs(char** row_ptr, int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
     assert(row >= 0);
-    assert(row < get_rows(lp));
+    assert(row < lp_get_rows(lp));
     assert(NULL != row_ptr);
 
     char* end = NULL;
@@ -121,7 +121,7 @@ bool parse_rhs(char** row_ptr, int row, LinearProgram* lp) {
         return false;
     }
 
-    set_rhs(lp, row, num);
+    lp_set_rhs(lp, row, num);
     *row_ptr = end;
 
     assert(lp_is_valid(lp));
@@ -135,13 +135,13 @@ bool parse_rhs(char** row_ptr, int row, LinearProgram* lp) {
 bool parse_row(char* s, int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
     assert(row >= 0);
-    assert(row < get_rows(lp));
+    assert(row < lp_get_rows(lp));
 
-    int vars = get_cols(lp);
+    int vars = lp_get_cols(lp);
     int coefs = 0;
 
     /* read coefficients */
-    while (coefs < get_cols(lp) && parse_coef(&s, row, coefs, lp)) {
+    while (coefs < lp_get_cols(lp) && parse_coef(&s, row, coefs, lp)) {
         coefs++;
     }
 
@@ -272,7 +272,7 @@ LinearProgram *new_lp_from_file(const char* filename) {
         goto read_error;
     }
 
-    if (can_overflow(lp)) {
+    if (lp_can_overflow(lp)) {
         fprintf(stderr, "the lp can overflow when using the current datatype for the coefficients\n");
         goto read_error;
     }

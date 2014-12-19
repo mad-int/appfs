@@ -19,22 +19,22 @@ extern LinearProgram* lp_new(int rows, int cols);
 
 extern void lp_free(LinearProgram* lp);
 
-bool lp_is_valid(LinearProgram* lp);
+extern bool lp_is_valid(LinearProgram* lp);
 
-extern uint64_t get_bin_solutions_lp(LinearProgram* lp);
+extern uint64_t lp_get_bin_solutions(LinearProgram* lp);
 
-extern void print_matrix(LinearProgram* lp);
+extern void lp_print_matrix(LinearProgram* lp);
 
-extern int get_rows(LinearProgram* lp);
+extern int lp_get_rows(LinearProgram* lp);
 
-extern int get_cols(LinearProgram* lp);
+extern int lp_get_cols(LinearProgram* lp);
 
-extern void set_coef(LinearProgram *lp, int row, int col, num_t val);
+extern void lp_set_coef(LinearProgram *lp, int row, int col, num_t val);
 
-extern void set_rhs(LinearProgram *lp, int row, num_t val);
+extern void lp_set_rhs(LinearProgram *lp, int row, num_t val);
 
-extern void set_constraint_type(LinearProgram *lp, int row, int type);
+extern void lp_set_constraint_type(LinearProgram *lp, int row, int type);
 
-extern bool can_overflow(LinearProgram* lp);
+extern bool lp_can_overflow(LinearProgram* lp);
 
 #endif /* _LINEAR_PROGRAM_H */
