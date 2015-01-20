@@ -45,9 +45,8 @@ LinearProgram* lp_new(int rows, int cols) {
 
     num_t** matrix = allocate(rows, sizeof(*matrix));
 
-    int i;
     // initialize every row with 0s
-    for (i = 0; i < rows; i++) {
+    for (int i = 0; i < rows; i++) {
         matrix[i] = allocate(cols, sizeof(*matrix[i]));
     }
 
@@ -64,8 +63,7 @@ LinearProgram* lp_new(int rows, int cols) {
 
 void lp_free(LinearProgram* lp) {
     assert(lp_is_valid(lp));
-    int i;
-    for (i = 0; i < lp->rows; i++) {
+    for (int i = 0; i < lp->rows; i++) {
         deallocate(lp->matrix[i]);
     }
 
@@ -76,7 +74,7 @@ void lp_free(LinearProgram* lp) {
 }
 
 /* taken and adapted form ex6/bzfkocht/src/bip.c */
-bool can_overflow(LinearProgram* lp) {
+bool lp_can_overflow(LinearProgram* lp) {
     assert(lp_is_valid(lp));
 
     for(int r = 0; r < lp->rows; r++)
@@ -112,17 +110,17 @@ bool can_overflow(LinearProgram* lp) {
     return false;
 }
 
-int get_rows(LinearProgram* lp) {
+int lp_get_rows(LinearProgram* lp) {
     assert(lp_is_valid(lp));
     return lp->rows;
 }
 
-int get_cols(LinearProgram* lp) {
+int lp_get_cols(LinearProgram* lp) {
     assert(lp_is_valid(lp));
     return lp->cols;
 }
 
-void set_coef(LinearProgram *lp, int row, int col, num_t val) {
+void lp_set_coef(LinearProgram *lp, int row, int col, num_t val) {
     assert(lp_is_valid(lp));
     assert(row >= 0 && row < lp->rows);
     assert(col >= 0 && col < lp->cols);
@@ -131,7 +129,7 @@ void set_coef(LinearProgram *lp, int row, int col, num_t val) {
     lp->matrix[row][col] = val;
 }
 
-void set_rhs(LinearProgram *lp, int row, num_t val) {
+void lp_set_rhs(LinearProgram *lp, int row, num_t val) {
     assert(lp_is_valid(lp));
     assert(row >= 0 && row < lp->rows);
     assert(val <= MAX_COEF_VAL && val >= MIN_COEF_VAL);
@@ -139,7 +137,7 @@ void set_rhs(LinearProgram *lp, int row, num_t val) {
     lp->vector[row] = val;
 }
 
-void set_constraint_type(LinearProgram *lp, int row, int type) {
+void lp_set_constraint_type(LinearProgram *lp, int row, int type) {
     assert(lp_is_valid(lp));
     assert(row >= 0 && row < lp->rows);
 
@@ -163,15 +161,14 @@ void print_vars(uint64_t vars, int len) {
     assert(0 < len);
     assert(len < 64);
 
-    int j;
-    for (j = 0; j < len; j++) {
+    for (int j = 0; j < len; j++) {
         printf("%d ", get_nth_bit(vars, j));
     }
 
     printf("\n");
 }
 
-bool is_feasible_sum(num_t sum, int row, LinearProgram* lp) {
+bool lp_is_feasible_sum(num_t sum, int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
     assert(row >= 0);
     assert(row < lp->rows);
@@ -187,26 +184,25 @@ bool is_feasible_sum(num_t sum, int row, LinearProgram* lp) {
 }
 
 /* check if a vector is a feasible solution to the lp */
-bool is_feasible(uint64_t vars, LinearProgram* lp) {
+bool lp_is_feasible(uint64_t vars, LinearProgram* lp) {
     assert(lp_is_valid(lp));
 
-    int i, j;
-    for (i = 0; i < lp->rows; i++) {
+    for (int i = 0; i < lp->rows; i++) {
         num_t sum = 0;
-        for (j = 0; j < lp->cols; j++) {
+        for (int j = 0; j < lp->cols; j++) {
             if (get_nth_bit(vars, j)) {
                 sum += lp->matrix[i][j];
             }
         }
 
-        if (!is_feasible_sum(sum, i, lp)) {
+        if (!lp_is_feasible_sum(sum, i, lp)) {
             return false;
         }
     }
     return true;
 }
 
-void print_constraint_type(int row, LinearProgram* lp) {
+void lp_print_constraint_type(int row, LinearProgram* lp) {
     assert(lp_is_valid(lp));
     assert(row >= 0);
     assert(row < lp->rows);
@@ -224,19 +220,18 @@ void print_constraint_type(int row, LinearProgram* lp) {
     }
 }
 
-void print_matrix(LinearProgram* lp) {
+void lp_print_matrix(LinearProgram* lp) {
     assert(lp_is_valid(lp));
 
     printf("nvars: %d\n", lp->cols);
     printf("nconss: %d\n", lp->rows);
 
-    int i, j;
-    for (i = 0; i < lp->rows; i++) {
-        for (j = 0; j < lp->cols; j++) {
+    for (int i = 0; i < lp->rows; i++) {
+        for (int j = 0; j < lp->cols; j++) {
             print_num(lp->matrix[i][j]);
         }
 
-        print_constraint_type(i, lp);
+        lp_print_constraint_type(i, lp);
 
         print_num(lp->vector[i]);
         printf("\n");
@@ -244,17 +239,16 @@ void print_matrix(LinearProgram* lp) {
 }
 
 /* print all 0-1 solutions to the lp into the outstream */
-uint64_t get_bin_solutions_lp(LinearProgram* lp) {
+uint64_t lp_get_bin_solutions(LinearProgram* lp) {
     uint64_t vars = 0;
     uint64_t count = 1UL << lp->cols;
     uint64_t feasible_solutions = 0;
 
     clock_t start = clock();
 
-    uint64_t i;
-    for (i = 0; i < count; i++) {
+    for (uint64_t i = 0; i < count; i++) {
         vars = next_vars(i);
-        if (is_feasible(vars, lp)) {
+        if (lp_is_feasible(vars, lp)) {
             print_vars(vars, lp->cols);
             feasible_solutions++;
         }

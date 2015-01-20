@@ -1,0 +1,49 @@
+project Ex8 is
+
+   type Build_Modes is
+      ("release", "debug");
+   Mode : Build_Modes := external ("build", "debug");
+
+   -- list of source directories
+   for Source_Dirs use ("src");
+   -- object directory
+   for Object_Dir use "obj";
+   -- directory of the executable
+   for Exec_Dir use ".";
+   -- list of files containing main functions
+   for Main use ("ex8.adb");
+
+   -- extra compiler options
+   package Compiler is
+      General_Switches := ("-gnat12");
+
+      case Mode is
+
+         when "debug" =>
+            -- gnata turns assert and debug pragmas on
+            for Default_Switches ("ada") use General_Switches & ("-g", "-gnata");
+
+         when "release" =>
+            for Default_Switches ("ada") use General_Switches & ("-O2");
+      end case;
+   end Compiler;
+
+   -- extra builder options
+   package Builder is
+
+      case Mode is
+
+         when "debug" =>
+            for Default_Switches ("ada") use ("-g");
+
+         when "release" =>
+            for Default_Switches ("ada") use ();
+      end case;
+   end Builder;
+
+   package Ide is
+      for Compiler_Command ("ada") use "gnatmake";
+      for Compiler_Command ("c") use "gcc";
+   end Ide;
+
+end Ex8;

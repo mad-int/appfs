@@ -20,9 +20,9 @@ int solve_lp(const char *filename) {
         return EXIT_FAILURE;
     }
 
-    print_matrix(lp);
+    lp_print_matrix(lp);
 
-    uint64_t sols = get_bin_solutions_lp(lp);
+    uint64_t sols = lp_get_bin_solutions(lp);
 
     printf("found %lu feasible solutions\n", sols);
 
