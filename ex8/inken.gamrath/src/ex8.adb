@@ -1,7 +1,3 @@
--- with Ada.Text_IO, Ada.Integer_Text_IO, Ada.Command_line, Interfaces;
--- use Ada.Text_IO, Ada.Integer_Text_IO, Ada.Command_line, Interfaces;
--- with Ada.Sequential_IO;
-
 with Ada.Command_line;           use Ada.Command_line; -- Command line arguments
 with Ada.Sequential_IO;                                -- Reading file
 with Ada.Text_IO;                use Ada.Text_IO;      -- Put_Line
