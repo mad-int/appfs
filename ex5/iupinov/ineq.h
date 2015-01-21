@@ -59,9 +59,10 @@ struct BinaryVector
 	int variablesCount;
 };
 
+typedef void (*SolutionCallback)(const struct BinaryVector *solution);
 int GetBinaryVectorComponent(const struct BinaryVector *vector, const int index);	
-int TestSolutionForConstraint(const struct IneqConstraint *constraint, const struct BinaryVector *solution);
-int TestSolutionForSystem(const struct IneqSystem *system, const struct BinaryVector *solution);
+int TestSolutionForConstraint(const struct IneqConstraint *constraint, const struct BinaryVector *solution, const unsigned int columnChanged, long double *workingSum);
+int TestSolutionForSystem(const struct IneqSystem *system, const struct BinaryVector *solution, const SolutionCallback foundCallback, unsigned int *counter, const unsigned int columnChanged, long double *workingSums);
 void PrintSolution(const struct BinaryVector *solution);
 
 #endif
