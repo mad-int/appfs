@@ -1,8 +1,7 @@
 TARGET = ex5
 # LIBS = -lm
 CC = gcc
-# use -DUSE_DBL for double data type -DUSE_DBL
-CFLAGS = -g -std=c99 -Wall -Wextra -Wpedantic -O3 -DNDEBUG --coverage
+CFLAGS = -g -std=c99 -Wall -Wextra -Wpedantic -O3 -DNDEBUG -DUSE_DBL --coverage
 
 TESTS_DIR=../../data
 TESTS_TEMPLATES=$(TESTS_DIR)/corrupt* $(TESTS_DIR)/error* $(TESTS_DIR)/test*
@@ -28,6 +27,7 @@ $(TARGET): $(OBJECTS)
 
 check: clean all
 	for test in $(TESTS) ; do \
+		echo Testing $$test;\
 		./$(TARGET) $$test ; \
 	done
 	lcov -d . -c -o coverage.info

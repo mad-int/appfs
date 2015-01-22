@@ -212,36 +212,50 @@ int GetBinaryVectorComponent(const struct BinaryVector *vector, const int index)
 }
 
 // return value 0 means success, everything else - error
-int TestSolutionForConstraint(const struct IneqConstraint *constraint, const struct BinaryVector *solution)
+// columnChanged=UINT_MAX for full calculation, iterative way otherwise
+int TestSolutionForConstraint(const struct IneqConstraint *constraint, const struct BinaryVector *solution, 
+const unsigned int columnChanged, long double *workingSum)
 {
 	assert(constraint);
 	assert(solution);	
-	int j;
-	long double sum = 0;
-	for (j = 0; j < solution->variablesCount; ++j)
-		if (GetBinaryVectorComponent(solution, j))
-			sum += constraint->coefficients[j];
-	sum -= (long double)constraint->conditionValue; // rounding?
+	if (columnChanged == UINT_MAX)
+	{
+		//full evaluation which should be done on first pass
+		*workingSum = 0.0L;
+		for (int j = 0; j < solution->variablesCount; ++j)
+			if (GetBinaryVectorComponent(solution, j))
+				*workingSum += constraint->coefficients[j];
+		*workingSum -= (long double)constraint->conditionValue; // rounding?
+	}
+	else
+		*workingSum += GetBinaryVectorComponent(solution, columnChanged) ? constraint->coefficients[columnChanged] : -constraint->coefficients[columnChanged];	
 	int result = 0;	
 	if (constraint->condition & COND_LESS_OR_EQUAL)
-		result |= (sum > DBL_MIN);
+		result |= (*workingSum > DBL_MIN);
 	if (constraint->condition & COND_GREATER_OR_EQUAL)
-		result |= (sum < -DBL_MIN);	
+		result |= (*workingSum < -DBL_MIN);	
 	return result;
 }
 
 // return value 0 means success, everything else - error
-int TestSolutionForSystem(const struct IneqSystem *system, const struct BinaryVector *solution)
+// columnChanged=UINT_MAX for full calculation, iterative way otherwise
+int TestSolutionForSystem(const struct IneqSystem *system, const struct BinaryVector *solution, const SolutionCallback foundCallback, unsigned int *counter, const unsigned int columnChanged, long double *workingSums)
 {
 	assert(system);
 	assert(solution);	
-	int i;
 	int errorCode = 0;
-	for (i = 0; i < system->constraintsCount; ++i)
+	for (int i = 0; i < system->constraintsCount; ++i)
 	{
-		errorCode = TestSolutionForConstraint(&system->constraints[i], solution);
-		if (errorCode)
-			break;
+		errorCode |= TestSolutionForConstraint(&system->constraints[i], solution, columnChanged, &workingSums[i]);
+		//if (errorCode)
+		//	break;
+	}
+	if (!errorCode)
+	{
+		if (foundCallback)
+			foundCallback(solution);
+		if (counter)
+			(*counter)++;
 	}
 	return errorCode;
 }
