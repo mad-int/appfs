@@ -1,0 +1,82 @@
+project Ex9 is
+
+   -- possible so-called 'scenarios' the project could run
+   type Build_Modes is
+     ("debug", "release");
+   type Coeff_Type is
+     ("integer", "float");
+
+   -- variable 'Mode' captures the external given value of 'mode' with default value 'debug'
+   Mode  : Build_Modes := external ("mode", "debug");
+   Coeff : Coeff_Type := external ("coeffs", "float");
+
+   -- list of source directories
+   for Source_Dirs use ("src");
+   -- object directory
+   for Object_Dir use "obj";
+   -- directory of the executable
+   for Exec_Dir use ".";
+   -- list of files containing main functions
+   for Main use ("main.adb");
+
+   -- rename body files for the appropriate coeff_type
+   package Naming is
+
+      case Coeff is
+
+         when "integer" =>
+            for Spec ("numb") use "numb_int_spec.ads";
+            for body ("numb") use "numb_int_body.adb";
+
+         when "float" =>
+            for Spec ("numb") use "numb_float_spec.ads";
+            for body ("numb") use "numb_float_body.adb";
+      end case;
+   end Naming;
+
+   -- extra compiler options
+   -- flags:
+   --    * -gnat12  ensures the use of Ada2012
+   --    * -gnato   turns integer overflow checks on
+   --    * -gnata   turns assert and debug pragmas on
+   --    * -gnateF  turns overflow checks for floating point operations on
+   package Compiler is
+
+      -- compiler flags for all ada compilations
+      General_Switches := ("-gnat12", "-gnato");
+
+      -- use -g or -O2 depending on the mode
+      case Mode is
+
+         when "debug" =>
+
+            for Default_Switches ("ada") use General_Switches & ("-g", "-gnata", "-gnateF");
+
+         when "release" =>
+            for Default_Switches ("ada") use General_Switches & ("-O2");
+      end case;
+   end Compiler;
+
+   -- extra building options
+   package Builder is
+
+      -- rename the executables
+      for Executable ("hello.adb") use "testHelloWorld";
+      for Executable ("main.adb") use "main";
+
+      case Mode is
+
+         when "debug" =>
+            for Default_Switches ("ada") use ("-g");
+
+         when "release" =>
+            for Default_Switches ("ada") use ();
+      end case;
+   end Builder;
+
+   package Ide is
+      for Compiler_Command ("ada") use "gnatmake";
+      for Compiler_Command ("c") use "gcc";
+   end Ide;
+
+end Ex9;
