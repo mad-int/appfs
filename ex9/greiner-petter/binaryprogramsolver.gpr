@@ -1,0 +1,12 @@
+project BinaryProgramSolver is
+
+   package Compiler is
+      for Default_Switches ("ada") use ("-g", "-O2");
+   end Compiler;
+
+   for Object_Dir use "obj";
+   for Exec_Dir use "exec";
+   for Main use ("main.adb");
+
+end BinaryProgramSolver;
+

@@ -65,6 +65,9 @@ Session.vim
 *.o
 *.obj
 
+# Compiled Ada Library Information
+*.ali
+
 # Compiled Dynamic libraries
 *.so
 *.dylib
