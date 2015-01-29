@@ -1,0 +1,39 @@
+project Ex9 is
+
+   for Source_Dirs use ("src");
+   for Object_Dir use "obj";
+   for Exec_Dir use "bin";
+   for Main use ("ex9");
+
+   package Ide is
+      for Vcs_Kind use "Git";
+      for Vcs_Repository_Root use "git@opt12.zib.de:WS2014_appfs/exercises/ex9_ada";
+      for Documentation_Dir use "doc";
+   end Ide;
+
+   package Pretty_Printer is
+      for Default_Switches ("ada") use ("-cl3", "-M127");
+   end Pretty_Printer;
+
+   package Builder is
+      for Default_Switches ("ada") use ("-s", "-g");
+   end Builder;
+
+   package Compiler is
+      for Default_Switches ("ada") use ("-gnatwa.gh.k", "-g", "-gnatf", "-gnat12", "-O3", "-gnato", "-fstack-check", "-gnatE", "-gnata");
+   end Compiler;
+
+   package Linker is
+      for Default_Switches ("ada") use ("-g");
+   end Linker;
+
+   package Check is
+      for Default_Switches ("ada") use ("-rules", "-from=/home/bzfkocht/zib/vorlesung/WS2014_appfs/exercises/ex8_ada/gaslab");
+   end Check;
+
+   package Prove is
+      for Switches use ("--proof=progressive", "--report=all");
+   end Prove;
+
+end Ex9;
+
