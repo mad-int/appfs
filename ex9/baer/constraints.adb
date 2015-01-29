@@ -1,7 +1,9 @@
+with Ada.Assertions;
 with Ada.Exceptions;
 -- with Ada.Text_IO; -- Open(), Get_Line(), Put_Line(), Close()
 with Ada.Strings.Fixed; -- Trim()
 with Ada.Strings.Maps; -- Maps.Character_Set, To_Set()
+with Ada.Characters.Latin_1;
 
 use Ada;
 use Ada.Strings.Fixed;
@@ -12,7 +14,7 @@ use Ada.Strings.Fixed;
 package body Constraints is
 
     package Double_Text_IO is new Ada.Text_IO.Float_IO(Double);
-    package Bin_Text_IO is new Ada.Text_IO.Integer_IO(Bin);
+    --package Bin_Text_IO is new Ada.Text_IO.Integer_IO(Bin);
 
     ---
 
@@ -58,7 +60,7 @@ package body Constraints is
         for row in 1 .. cs.rows loop
             sum := 0.0;
             for col in 1 .. cs.cols loop
-                if x(col) = 1 then
+                if x(col) then
                     sum := sum + cs.matrix(row, col);
                 end if;
             end loop;
@@ -71,6 +73,59 @@ package body Constraints is
 
             exit Check_Loop when not feasible;
         end loop Check_Loop;
+
+        return feasible;
+    end;
+
+    --
+    --
+    --
+    function is_Feasible_BitFlip(cs : in Constraints_t; x : in BinVector_Type;
+            updatemask : in BinVector_Type; actualLhs : in out Vector_Type) return Boolean
+    is
+        col : Int := 1;
+        feasible : Boolean := FALSE;
+    begin
+
+        --
+        -- Determin column to change.
+        --
+        -- TODO: How to do it better with this intrinsic or binary-search bit-magic?
+        for i in updatemask'Range loop
+            if updatemask(i) = ONE then
+                col := i;
+                exit;
+            end if;
+        end loop;
+
+        Assertions.Assert(updatemask(col) /= ZERO, "No set bit found in updatemask.");
+
+        --
+        -- Update the actualLhs.
+        --
+        if x(col) = ONE then -- bit set (1)
+            for row in 1 .. cs.rows loop
+                actualLhs(row) := actualLhs(row) + cs.matrix(row, col);
+            end loop;
+
+        else -- bit cleared (0)
+            for row in 1 .. cs.rows loop
+                actualLhs(row) := actualLhs(row) - cs.matrix(row, col);
+            end loop;
+        end if;
+
+        --
+        -- Check the actualLhs
+        --
+        for row in 1 .. cs.rows loop
+            case cs.cmp(row) is
+                when LESSEQ => feasible :=  LessEq(actualLhs(row), cs.rhs(row));
+                when GREATEQ=> feasible := GreatEq(actualLhs(row), cs.rhs(row));
+                when EQUAL  => feasible :=   Equal(actualLhs(row), cs.rhs(row));
+            end case;
+
+            exit when not feasible;
+        end loop;
 
         return feasible;
     end;
@@ -103,7 +158,6 @@ package body Constraints is
             --   no value supplied for discriminant "rows"
             -- There seems to be a problem with initalising the multi-dim array "matrix" in the record.
         begin
-
             for constrno in 1 .. cs.rows loop
                 Read_Constraint(file, linecount, constrno, cs);
             end loop;
@@ -149,7 +203,7 @@ package body Constraints is
             line : constant String := Trim_Line(Text_IO.Get_Line(file));
 
         begin
-            --Text_IO.Put_Line (Natural'Image(linecount) & ": `" & line & "'");
+            -- Text_IO.Put_Line(Natural'Image(linecount) & ": `" & line & "'");
 
             -- If Positive'Value raises an Exception, linecount is not(!) updated to the outside.
             -- I rely on this here.
@@ -179,13 +233,15 @@ package body Constraints is
 
             line : constant String := Trim_Line(Text_IO.Get_Line(file));
 
-            start   : Natural := 1;
+            --spaces : constant Maps.Character_Set := Maps.To_Set(Space);
+            spaces : constant Maps.Character_Set := Maps.To_Set(" " & Ada.Characters.Latin_1.HT);
+
+            start   : Natural := Index(line, From => 1, Set => spaces, Test => Outside);
             ende    : Natural := 1;
 
-            spaces : constant Maps.Character_Set := Maps.To_Set(Space);
 
         begin
-            -- Text_IO.Put_Line (Natural'Image(linecount) & ": `" & line & "'");
+            --Text_IO.Put_Line(Natural'Image(linecount) & ": `" & line & "'");
 
             if line'length /= 0 then
 
@@ -194,11 +250,11 @@ package body Constraints is
                     ende := Index(line, From => start, Set => spaces);
                     cs.matrix(constrno, j) := Double'Value(
                             Trim(line(start .. ende), Left => spaces, Right => spaces));
-                    start := ende + 1;
+                    start := Index(line, From => ende, Set => spaces, Test => Outside);
                 end loop;
 
                 -- Read Compare.
-                ende := Index(line, From => start, Set => spaces);
+                ende := Index(line, From => start, Set => spaces, Test => Inside);
                 declare
                     cmp_str : constant String := Trim(line(start .. ende), Left => spaces, Right => spaces);
                 begin
@@ -209,10 +265,10 @@ package body Constraints is
                                                 & "but got `" & cmp_str & "'";
                     end if;
                 end;
-                start := ende + 1;
+                start := Index(line, From => ende, Set => spaces, Test => Outside);
 
                 -- Read the right-hand-side.
-                ende := Index(line, From => start, Set => spaces);
+                ende := Index(line, From => start, Set => spaces, Test => Inside);
                 if ende = 0 then
                     ende := line'Last;
                 end if;
@@ -266,10 +322,12 @@ package body Constraints is
     begin
         Text_IO.Put("(");
         for i in x'First .. x'Last-1 loop
-            Bin_Text_IO.Put(x(i), Width => 1);
+            --Bin_Text_IO.Put(x(i), Width => 1);
+            Text_IO.Put(if(x(i) = ONE) then "1" else "0");
             Text_IO.Put(", ");
         end loop;
-        Bin_Text_IO.Put(x(x'Last), Width => 1);
+        -- Bin_Text_IO.Put(x(x'Last), Width => 1);
+        Text_IO.Put(if(x(x'Last) = ONE) then "1" else "0");
         Text_IO.Put_Line(")");
     end Print_BinVector;
 
@@ -303,20 +361,20 @@ package body Constraints is
     --
     --
     procedure inc(x : in out BinVector_Type) is
-        overlap : Bin := 0;
+        overlap : Bin := FALSE;
     begin
         for i in x'Range loop
-            if x(i) = 0 then
-                x(i) := 1;
-                overlap := 0;
+            if x(i) = ZERO then
+                x(i) := ONE;
+                overlap := FALSE;
             else
-                x(i) := 0;
-                overlap := 1;
+                x(i) := ZERO;
+                overlap := TRUE;
             end if;
-            exit when overlap = 0;
+            exit when overlap = FALSE;
         end loop;
 
-        --if overlap = 1 then
+        --if overlap then
         --    raise Constraint_Error with "integer overflow detected";
         --end if;
     end;
@@ -325,20 +383,20 @@ package body Constraints is
     --
     --
     procedure dec(x : in out BinVector_Type) is
-        overlap : Bin := 0;
+        overlap : Bin := FALSE;
     begin
         for i in x'Range loop
-            if x(i) = 1 then
-                x(i) := 0;
-                overlap := 0;
-            else -- x(1) = 0
-                x(i) := 1;
-                overlap := 1;
+            if x(i) = ONE then
+                x(i) := ZERO;
+                overlap := FALSE;
+            else -- x(1) = ZERO
+                x(i) := ONE;
+                overlap := TRUE;
             end if;
-            exit when overlap = 0;
+            exit when overlap = FALSE;
         end loop;
 
-        --if overlap = 1 then
+        --if overlap then
         --    raise Constraint_Error with "integer underflow detected";
         --end if;
     end;
@@ -351,7 +409,7 @@ package body Constraints is
         ret : BinVector_Type(a'Range);
     begin
         for i in a'Range loop
-            ret(i) := (if a(i) = 1 and b(i) = 1 then 1 else 0);
+            ret(i) := a(i) and b(i);
         end loop;
 
         return ret;
@@ -365,7 +423,7 @@ package body Constraints is
         ret : BinVector_Type(a'Range);
     begin
         for i in a'Range loop
-            ret(i) := (if a(i) = 1 xor b(i) = 1 then 1 else 0);
+            ret(i) := a(i) xor b(i);
         end loop;
 
         return ret;

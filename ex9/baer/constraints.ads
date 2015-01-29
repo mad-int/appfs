@@ -4,11 +4,13 @@ with Ada.Text_IO;
 -- Package Declaration
 --
 package Constraints is
-
     subtype Int is Integer range 1 .. 32;
-    subtype Bin is Integer range 0 .. 1;
+    subtype Bin is Boolean; -- Integer range 0 .. 1;
     -- for Bin'Width use 1;
-    --pragma Assert(Bin'Width = 1);
+    -- pragma Assert(Bin'Width = 1);
+
+    ONE  : constant Bin := TRUE;
+    ZERO : constant Bin := FALSE;
 
     --type Double is digits 11;
     type Double is new Long_Float;
@@ -37,8 +39,14 @@ package Constraints is
     -- Alternativ: cs.cols is possible.
     function Get_Cols(cs : in Constraints_t) return Int;
 
-    function is_Feasible(cs : in Constraints_t; x : in BinVector_Type) return Boolean;
-    -- TODO: function is_Feasible_Bitflip
+    function is_Feasible(cs : in Constraints_t; x : in BinVector_Type) return Boolean
+        with Pre => x'First = 1 and x'Last = cs.cols;
+
+    function is_Feasible_BitFlip(cs : in Constraints_t; x : in BinVector_Type;
+            updatemask : in BinVector_Type; actualLhs : in out Vector_Type) return Boolean
+        with Pre => x'First = 1 and x'Last = cs.cols
+                    and x'First = updatemask'First and x'Last = updatemask'Last
+                    and actualLhs'First = 1 and actualLhs'Last = cs.rows;
 
     procedure Print_BinVector(x : in BinVector_Type);
 
